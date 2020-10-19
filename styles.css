@@ -7,3 +7,24 @@ a {
     cursor: pointer;
     color: blue;
 }
+.container {
+    width: 800px;
+    margin-top: 20px;
+}
+.action-link {
+    margin-top: 20px;
+    display: block;
+    font-size: 20px;
+    padding: 5px 0;
+}
+.reveal-text {
+    margin-top: 10px;
+    font-size: 18px;
+}
+@media screen and (max-width: 767px) {
+    .container {
+        width: 100%;
+        padding: 0 20px;
+        text-align: center;
+    }
+}

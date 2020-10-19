@@ -2,19 +2,20 @@
 <html>
     <head>
         <title>Webmidi test</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="styles.css" />
     </head>
     <body>
-        <div>
-            <p>Ear trainer</p>
-            <a class="js-play">Click to play</a>
+        <div class="container">
+            <h1>Ear trainer</h1>
+            <a class="js-play action-link">Click to play</a>
             <div>
-                <a class="js-replay">Replay</a>
+                <a class="js-replay action-link">Replay</a>
             </div>
             <div>
-                <a class="js-reveal">Reveal</a>
+                <a class="js-reveal action-link">Reveal</a>
             </div>
-            <p class="js-result"></p>
+            <p class="js-result reveal-text"></p>
         </div>
         <!-- <script src="https://cdn.jsdelivr.net/npm/webmidi"></script> -->
         <script type="text/javascript" src="notePlayer.min.js"></script>
