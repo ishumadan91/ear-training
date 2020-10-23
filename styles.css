@@ -9,7 +9,7 @@ a {
 }
 .container {
     width: 800px;
-    margin-top: 20px;
+    margin: 20px auto 0;
 }
 .action-link {
     margin-top: 20px;
