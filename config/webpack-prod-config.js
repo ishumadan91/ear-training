@@ -20,7 +20,7 @@ module.exports = merge(common, {
   output: {
     filename: '[name]_[chunkhash].js',
     path: paths.appBuild,
-    publicPath: '/',
+    publicPath: './',
   },
   plugins: [
     // Uglify to minify your JavaScript

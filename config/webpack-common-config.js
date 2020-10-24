@@ -20,6 +20,6 @@ module.exports = {
   output: {
     filename: '[name].js',
     path: paths.appBuild,
-    publicPath: '/'
+    publicPath: './'
   }
 };
