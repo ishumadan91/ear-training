@@ -18,7 +18,7 @@ module.exports = merge(common, {
   // (e.g. '5124f5efa5436b5b5e7d_app.js')
   // Location where built files will go.
   output: {
-    filename: '[chunkhash]_[name].js',
+    filename: '[name]_[chunkhash].js',
     path: paths.appBuild,
     publicPath: '/',
   },
@@ -34,7 +34,7 @@ module.exports = merge(common, {
     // Extract text/(s)css from a bundle, or bundles, into a separate file.
     new MiniCssExtractPlugin({
       path: paths.appBuild,
-      filename: '[chunkhash]_styles.css'
+      filename: 'styles_[chunkhash].css'
     })
   ],
   module: {
