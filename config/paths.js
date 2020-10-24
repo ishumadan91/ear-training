@@ -11,7 +11,7 @@ const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
 
 module.exports = {
   appAssets: resolveApp('src/assets'), // For images and other assets
-  appBuild: resolveApp('build'), // Prod built files end up here
+  appBuild: resolveApp('docs'), // Prod built files end up here
   // appConfig: resolveApp('config'), // App config files
   appHtml: resolveApp('src/index.html'),
   appIndexJs: resolveApp('src/index.js'), // Main entry point
