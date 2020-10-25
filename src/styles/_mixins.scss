@@ -1,0 +1,5 @@
+@mixin mobileView {
+    @media screen and (max-width: $mobile-max-width) {
+        @content;
+    }
+}

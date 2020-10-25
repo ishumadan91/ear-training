@@ -3,7 +3,6 @@ import { playNotes, stopPlaying } from '../utils/notePlayer';
 
 const PlayPause = ({notesGap, isPlaying, setIsPlaying, questionArray}) => {
     const onClickPlay = () => {
-        console.log('onClickPlay', isPlaying)
         if(isPlaying) {
             setIsPlaying(false)
             stopPlaying()

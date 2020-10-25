@@ -1,6 +1,7 @@
 import np from 'noteplayer';
 
 let intervalId, playIndex = -1
+
 const playAllNotes = (arr, setIsPlaying) => {
     if(playIndex == arr.length) {
         clearInterval(intervalId)
@@ -8,8 +9,13 @@ const playAllNotes = (arr, setIsPlaying) => {
         setIsPlaying(false)
         return
     }
-    np.buildFromKeyNb(arr[playIndex]).play()
+    playSingleNote(arr[playIndex])
     playIndex++
+}
+export const getNoteBuild = (num) =>  np.buildFromKeyNb(num)
+
+export const playSingleNote = ({build}) => {
+    build.play()
 }
 export const playNotes = (questionArray, notesGap, setIsPlaying) => {
     playIndex = 0

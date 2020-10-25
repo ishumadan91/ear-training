@@ -1,0 +1,21 @@
+.container {
+    width: 100%;
+    padding: 20px;
+}
+.action-link {
+    margin-top: 20px;
+    display: block;
+    font-size: 20px;
+    padding: 5px 0;
+}
+.reveal-text {
+    margin-top: 10px;
+    font-size: 18px;
+}
+@include mobileView {
+    .container {
+        width: 100%;
+        padding: 0 20px;
+        text-align: center;
+    }
+}
