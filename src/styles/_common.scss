@@ -1,5 +1,12 @@
+body {
+    font-family: $font-family;
+    * {
+        font-family: $font-family;
+    }
+}
 .container {
     width: 100%;
+    text-align: center;
     padding: 20px;
 }
 .action-link {
@@ -11,9 +18,4 @@
 .reveal-text {
     margin-top: 10px;
     font-size: 18px;
-}
-@include mobileView {
-    .container {
-        text-align: center;
-    }
 }
