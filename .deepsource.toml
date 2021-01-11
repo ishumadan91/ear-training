@@ -1,9 +1,11 @@
 version = 1
 
+exclude_patterns = ["/docs/*"]
+
 [[analyzers]]
 name = "javascript"
 enabled = true
 
   [analyzers.meta]
-  environment = ["nodejs"]
   plugins = ["react"]
+  environment = ["nodejs"]
