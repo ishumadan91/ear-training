@@ -2,4 +2,8 @@
 @import "./mixins";
 @import "./reset";
 @import "./common";
-@import "./notesInput";
+
+// @import "./notesInput";
+@import "./modules/menuBar";
+@import "./modules/icon";
+@import "./modules/piano";

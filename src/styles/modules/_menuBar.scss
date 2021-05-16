@@ -1,0 +1,29 @@
+.menu-bar-list {
+    width: 100%;
+    background: $color-menu-bg;
+    display: grid;
+    grid-template-columns: repeat(4, 25%);
+    border-bottom: 4px solid $color-border;
+    box-shadow: inset 0px 1px 9px -3px #999, 0px 6px 18px -9px #555;
+    > li {
+        border-right: 1px solid $color-border;
+        > a {
+            height: 70px;
+            display: block;
+            > span {
+                color: $color-link;
+                display: block;
+                padding-top: 12px;
+            }
+            .icon {
+                margin: auto;
+            }
+            &:hover {
+                background: #f3f3f3;
+            }
+        }
+        &:last-child {
+            border-right: none;
+        }
+    }
+}

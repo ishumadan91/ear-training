@@ -21,5 +21,14 @@ module.exports = {
     filename: '[name].js',
     path: paths.appBuild,
     publicPath: './'
+  },
+  resolve: {
+    alias: {
+      Reducers: paths.appReducers,
+      Components: paths.appComponents,
+      Utils: paths.appUtils,
+      Styles: paths.appStyles,
+      SvgIcons: paths.appSvgIcons
+    }
   }
 };
