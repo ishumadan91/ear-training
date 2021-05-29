@@ -1,61 +1,78 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import np from 'noteplayer';
 import Icon, { ICON_TYPES } from './Icon';
+import { getGroupedNotes, getOnlyKeys } from '../utils/noteMapper';
+import PianoOctave from './PianoOctave';
 
-console.log(np.getNotesInfo())
-
-const PianoKey = ({name, isBlack}) => {
-    return  (
-        <a className={`piano-key${isBlack?' black':''}`}></a>
-    )
-}
 export const VIEW_TYPES = {
     viewOnly: 'viewOnly',
     notesOnly: 'notesOnly',
     range: 'range'
 }
-const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
-const getKeyElements = (notes) => {
-    const keyElements = []
-    for(let i = 0;i < notes.length;i++) {
-        const keyName = notes[i]
-        const keyElement = <PianoKey name={keyName} />
-        const nextKeyValue = notes[(i + 1) % notes.length]
-        let nextKeyElement = null
-        if(nextKeyValue.indexOf('#') != -1) {
-            nextKeyElement = <PianoKey name={nextKeyValue} isBlack={true} />
-            i++
-        }
-        keyElements.push(
-            <div key={keyName} className="piano-key-wrapper">
-                {keyElement}
-                {nextKeyElement}
-            </div>
-        )
-    }
-    return keyElements
-}
+const scrollMagnitude = 80
 const Piano = ({viewType, range}) => {
     let element = null, hasArrows = false
+    const [scroll, setScroll] = useState(0)
+    const [boundations, setBoundations] = useState([])
+    const pianoKeysContainerRef = useRef()
+    const onClickKey = ({keynb, octave}) => {
+        console.log(keynb, octave)
+    }
     if(viewType == VIEW_TYPES.notesOnly) {
-        element = getKeyElements(notes)
+        element = <PianoOctave notes={getOnlyKeys()} onClickKey={onClickKey} />
     } else {
         hasArrows = true
-        element = getKeyElements(np.getNotesInfo().map(({name}) => name ))
+        const groupedOctaves = getGroupedNotes()
+        element = Object.keys(groupedOctaves).map((octave) => {
+            return (
+                <PianoOctave key={octave} onClickKey={onClickKey} notes={groupedOctaves[octave]} range={range} octave={octave} />
+            )
+        })
     }
+    const onScroll = (multiplier) => {
+        let newScrollValue = scroll + scrollMagnitude * multiplier
+        const boundationValue = boundations[multiplier > 0?0:1]
+        if((newScrollValue * -multiplier) < boundationValue) {
+            newScrollValue = boundationValue
+        }
+        setScroll(newScrollValue)
+    }
+    useEffect(() => {
+        const {current} = pianoKeysContainerRef
+        if(viewType != VIEW_TYPES.notesOnly) {
+            const pianoWrapperElements = current.querySelectorAll('.piano-key-wrapper')
+            const singleWidth = pianoWrapperElements[0].clientWidth
+            const containerWidth = current.clientWidth
+            const width = singleWidth * pianoWrapperElements.length - containerWidth
+            const boundations = [0, -width]
+            setBoundations(boundations)
+            const rangeAvg = Math.ceil((range[0] + range[1])/2)
+            const avgNoteWidth = singleWidth * 7/12
+            const frameCapacity = Math.floor(containerWidth / avgNoteWidth) - 1
+            const leftMostNote = Math.floor(rangeAvg - frameCapacity/2) - 1
+            let scrollPosition = -(leftMostNote * avgNoteWidth)
+            if(scrollPosition > boundations[0]) {
+                scrollPosition = boundations[0]
+            } else if (scrollPosition < boundations[1]) {
+                scrollPosition = boundations[1]
+            }
+            setScroll(scrollPosition)
+        }
+    }, [pianoKeysContainerRef])
     return (
-        <div className={`piano-wrap-outer ${hasArrows?'with-arrows':''}`}>
-            <div className="piano-wrap-inner">
+        <div className={`piano-wrap-outer`}>
+            <div className={`piano-wrap-middle ${hasArrows?'with-arrows':''}`}>
                 {hasArrows?
                     <>
-                        <a className="piano-arrow left"><Icon type={ICON_TYPES.arrowLeft} /></a>
-                        <a className="piano-arrow right"><Icon type={ICON_TYPES.arrowRight} /></a>
+                        <a onClick={() => onScroll(1)} className="piano-arrow left"><Icon type={ICON_TYPES.arrowLeft} /></a>
+                        <a onClick={() => onScroll(-1)} className="piano-arrow right"><Icon type={ICON_TYPES.arrowRight} /></a>
                     </>
                     :null
                 }
-                {element}
+                <div ref={pianoKeysContainerRef} style={{left: scroll}} className="piano-wrap-inner">
+                    {element}
+                </div>
             </div>
         </div>
     )

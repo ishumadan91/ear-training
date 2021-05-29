@@ -2,6 +2,8 @@
     margin-top: 50px;
     padding-top: 24px;
     overflow: hidden;
+}
+.piano-wrap-middle {
     position: relative;
     &.with-arrows {
         .piano-wrap-inner {
@@ -13,6 +15,7 @@
     display: flex;
     justify-content: center;
     position: relative;
+    transition: 0.4s all ease-in-out;
 }
 .piano-arrow {
     position: absolute;
@@ -46,6 +49,7 @@
     background: $color-white;
     display: block;
     border: 1px solid $color-black;
+    position: relative;
     &.black {
         width: 19px;
         height: 71px;
@@ -59,8 +63,49 @@
             background: $color-black;
         }
     }
+    &.inactive {
+        pointer-events: none;
+        &:after {
+            content: "";
+            background: #712a3e;
+            opacity: 0.6;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+    }
     &:hover {
         opacity: 1;
         background: #eee;
+    }
+}
+.piano-octave-wrapper {
+    display: flex;
+    position: relative;
+}
+.piano-octave-info {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -26px;
+    margin: 0px 2px;
+    display: flex;
+    &::before, &::after {
+        content:  "";
+        border: 2px solid $color-border;
+        border-bottom: none;
+        height: 16px;
+        margin: 6px 3px 0;
+        flex-grow: 1;
+    }
+    &::before {
+        border-right: none;
+        margin-left: 0;
+    }
+    &::after {
+        border-left: none;
+        margin-right: 0;
     }
 }
