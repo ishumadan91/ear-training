@@ -1,0 +1,198 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0; }
+
+a {
+  cursor: pointer;
+  color: blue; }
+
+ul, li {
+  list-style: none; }
+
+body {
+  background: #ECFCFF;
+  font-family: "Roboto", sans-serif;
+  font-size: 14px; }
+  body * {
+    font-family: "Roboto", sans-serif; }
+
+.container {
+  width: 100%;
+  text-align: center; }
+
+.action-link {
+  margin-top: 20px;
+  display: block;
+  font-size: 20px;
+  padding: 5px 0; }
+
+.reveal-text {
+  margin-top: 10px;
+  font-size: 18px; }
+
+@media screen and (min-width: 768px) {
+  .container {
+    width: 420px;
+    margin: auto;
+    border: 1px solid #222; } }
+
+.menu-bar-list {
+  width: 100%;
+  background: #fff;
+  display: grid;
+  grid-template-columns: repeat(4, 25%);
+  border-bottom: 4px solid #442AE5;
+  box-shadow: inset 0px 1px 9px -3px #999, 0px 6px 18px -9px #555; }
+  .menu-bar-list > li {
+    border-right: 1px solid #442AE5; }
+    .menu-bar-list > li > a {
+      height: 70px;
+      display: block; }
+      .menu-bar-list > li > a > span {
+        color: #0176B8;
+        display: block;
+        padding-top: 12px; }
+      .menu-bar-list > li > a .icon {
+        margin: auto; }
+      .menu-bar-list > li > a:hover {
+        background: #f3f3f3; }
+    .menu-bar-list > li:last-child {
+      border-right: none; }
+
+.icon svg {
+  width: 100%;
+  height: 100%; }
+
+.piano-wrap-outer {
+  margin-top: 50px;
+  padding-top: 24px;
+  padding-bottom: 30px;
+  overflow: hidden; }
+
+.piano-wrap-middle {
+  position: relative; }
+  .piano-wrap-middle.with-arrows .piano-wrap-inner {
+    justify-content: left; }
+
+.piano-wrap-inner {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  transition: 0.4s all ease-in-out; }
+
+.piano-arrow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 30px;
+  box-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8; }
+  .piano-arrow:hover {
+    opacity: 1; }
+  .piano-arrow.left {
+    left: 0;
+    background: linear-gradient(90deg, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%); }
+  .piano-arrow.right {
+    right: 0;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, #FFFFFF 100%); }
+
+.piano-key-wrapper {
+  position: relative; }
+
+.piano-key {
+  height: 121px;
+  width: 25px;
+  background: #fff;
+  display: block;
+  border: 1px solid #222;
+  position: relative; }
+  .piano-key.inactive {
+    pointer-events: none; }
+    .piano-key.inactive:after {
+      content: "";
+      background: #712a3e;
+      opacity: 0.6;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0; }
+  .piano-key:hover {
+    opacity: 1;
+    background: #eee; }
+
+.piano-key-mid-wrap {
+  position: relative; }
+  .piano-key-mid-wrap.black {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 15px; }
+    .piano-key-mid-wrap.black > .piano-key {
+      width: 19px;
+      height: 71px;
+      background: #222;
+      z-index: 1; }
+      .piano-key-mid-wrap.black > .piano-key:hover {
+        opacity: 0.8;
+        background: #222; }
+
+.piano-octave-wrapper {
+  display: flex;
+  position: relative; }
+
+.piano-octave-info {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -26px;
+  margin: 0px 2px;
+  display: flex; }
+  .piano-octave-info::before, .piano-octave-info::after {
+    content: "";
+    border: 2px solid #442AE5;
+    border-bottom: none;
+    height: 16px;
+    margin: 6px 3px 0;
+    flex-grow: 1; }
+  .piano-octave-info::before {
+    border-right: none;
+    margin-left: 0; }
+  .piano-octave-info::after {
+    border-left: none;
+    margin-right: 0; }
+
+.piano-range-link {
+  position: absolute;
+  top: 0;
+  bottom: -30px;
+  left: -2px;
+  width: 4px;
+  background: #222;
+  z-index: 1; }
+  .piano-key-mid-wrap.black > .piano-range-link.start {
+    left: 8px; }
+  .piano-key-wrapper.has-black + .piano-key-wrapper .piano-range-link.start {
+    left: 9px; }
+  .piano-range-link.end {
+    left: auto;
+    right: -2px; }
+    .piano-key-wrapper.has-black > .piano-key-mid-wrap:not(.black) .piano-range-link.end {
+      right: 10px; }
+    .piano-key-wrapper.has-black > .piano-key-mid-wrap.black .piano-range-link.end {
+      right: 7px; }
+  .piano-range-link:after {
+    content: "";
+    width: 20px;
+    height: 20px;
+    background: #222;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 0;
+    left: -8px; }
+

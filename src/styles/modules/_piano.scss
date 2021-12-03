@@ -1,6 +1,8 @@
 .piano-wrap-outer {
     margin-top: 50px;
     padding-top: 24px;
+    padding-bottom: 30px;
+    user-select: none;
     overflow: hidden;
 }
 .piano-wrap-middle {
@@ -22,7 +24,7 @@
     top: 0;
     bottom: 0;
     width: 30px;
-    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.25);
     z-index: 1000;
     display: flex;
     align-items: center;
@@ -50,19 +52,6 @@
     display: block;
     border: 1px solid $color-black;
     position: relative;
-    &.black {
-        width: 19px;
-        height: 71px;
-        background: $color-black;
-        position: absolute;
-        top: 0;
-        left: 15px;
-        z-index: 1;
-        &:hover {
-            opacity: 0.8;
-            background: $color-black;
-        }
-    }
     &.inactive {
         pointer-events: none;
         &:after {
@@ -79,6 +68,25 @@
     &:hover {
         opacity: 1;
         background: #eee;
+    }
+}
+.piano-key-mid-wrap {
+    position: relative;
+    &.black {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 15px;
+        > .piano-key {
+            width: 19px;
+            height: 71px;
+            background: $color-black;
+            z-index: 1;
+            &:hover {
+                opacity: 0.8;
+                background: $color-black;
+            }
+        }
     }
 }
 .piano-octave-wrapper {
@@ -107,5 +115,42 @@
     &::after {
         border-left: none;
         margin-right: 0;
+    }
+}
+.piano-range-link {
+    position: absolute;
+    top: 0;
+    bottom: -30px;
+    left: -2px;
+    width: 4px;
+    background: $color-black;
+    z-index: 1;
+    &.start {
+        .piano-key-mid-wrap.black > & {
+            left: 8px;
+        }
+        .piano-key-wrapper.has-black + .piano-key-wrapper & {
+            left: 9px;
+        }
+    }
+    &.end {
+        left: auto;
+        right: -2px;
+        .piano-key-wrapper.has-black > .piano-key-mid-wrap:not(.black) & {
+            right: 10px;
+        }
+        .piano-key-wrapper.has-black > .piano-key-mid-wrap.black & {
+            right: 7px;
+        }
+    }
+    &:after {
+        content: "";
+        width: 20px;
+        height: 20px;
+        background: $color-black;
+        border-radius: 50%;
+        position: absolute;
+        bottom: 0;
+        left: -8px;
     }
 }

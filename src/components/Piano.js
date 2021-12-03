@@ -26,7 +26,7 @@ const Piano = ({viewType, range}) => {
         const groupedOctaves = getGroupedNotes()
         element = Object.keys(groupedOctaves).map((octave) => {
             return (
-                <PianoOctave key={octave} onClickKey={onClickKey} notes={groupedOctaves[octave]} range={range} octave={octave} />
+                <PianoOctave key={octave} onClickKey={onClickKey} notes={groupedOctaves[octave]} range={range} octave={octave} hasRangeSlider={viewType == VIEW_TYPES.range} />
             )
         })
     }
@@ -45,7 +45,7 @@ const Piano = ({viewType, range}) => {
             const singleWidth = pianoWrapperElements[0].clientWidth
             const containerWidth = current.clientWidth
             const width = singleWidth * pianoWrapperElements.length - containerWidth
-            const boundations = [0, -width]
+            const boundations = [30, -width - 30]
             setBoundations(boundations)
             const rangeAvg = Math.ceil((range[0] + range[1])/2)
             const avgNoteWidth = singleWidth * 7/12
