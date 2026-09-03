@@ -27,7 +27,7 @@ const meta: Meta = {
         feedbackDetail=${args.feedbackDetail ?? ''}
         score=${args.score ?? 8}
         streak=${args.streak ?? 8}
-        accuracy=${args.accuracy ?? 89}
+        .accuracy=${args.accuracy ?? 89}
         @et-check=${() => console.log('check')}
         @et-clear=${() => console.log('clear')}
         @et-next=${() => console.log('next')}
@@ -42,7 +42,7 @@ export default meta;
 type Story = StoryObj;
 
 export const Fresh: Story = {
-  args: { playing: false, slots: [{}, {}, {}, {}], score: 0, streak: 0, accuracy: 100 },
+  args: { playing: false, slots: [{}, {}, {}, {}], score: 0, streak: 0, accuracy: null },
 };
 
 export const Answering: Story = {

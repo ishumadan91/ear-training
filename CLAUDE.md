@@ -23,6 +23,7 @@ per folder with a co-located `*.stories.ts`.
 src/
   styles/        tokens.css (source of truth), tokens.ts, global.css, colors.stories.ts
   data/          scales.ts — scales, thaats, keyboard layout, semitone mapping
+                 preferences.ts — localStorage settings (validated on read)
   audio/         audio-engine.ts — Web Audio synthesis (piano + guitar)
   components/
     atoms/       et-icon, et-icon-button, et-toggle, et-button, et-divider,
@@ -128,6 +129,26 @@ the learner taps the key labelled `D♯4`.
 label list.** The keyboard spells black keys with sharps (`D♯`) while several
 Western scale pools spell them with flats (`E♭`); a label lookup returns -1 for
 every flat, which would make those scales unwinnable.
+
+## Preferences
+
+`src/data/preferences.ts` persists **settings only** — notation, scale, root,
+difficulty, instrument — under `ear-training:preferences`. Progress (score,
+streak, accuracy, round) is deliberately *not* stored, so every visit starts a
+clean session and a stale streak can't look like a fresh one.
+
+Two things there are load-bearing:
+
+- **Everything is validated on read.** Stored values are user-editable and
+  outlive schema changes, so each field falls back to its default if
+  unrecognised. `scaleKey` is checked *against the resolved notation* — a thaat
+  stored under `western` is meaningless and resets to Major.
+- **Every access is wrapped in try/catch.** Safari in private mode throws
+  rather than returning null. Losing persistence is fine; taking the app down
+  with it is not.
+
+Accuracy is `number | null`. It reads `–` until a round has actually been
+graded — showing 100% up front would claim a perfect record nobody earned.
 
 ## Instruments
 

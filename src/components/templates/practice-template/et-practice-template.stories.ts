@@ -35,7 +35,7 @@ const meta: Meta = {
         .slots=${args.slots}
         score="8"
         streak="8"
-        accuracy="89"
+        .accuracy=${89}
       ></et-practice-template>
     </div>
   `,

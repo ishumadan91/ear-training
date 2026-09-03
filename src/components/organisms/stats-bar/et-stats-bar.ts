@@ -21,7 +21,12 @@ export class EtStatsBar extends LitElement {
 
   @property({ type: Number }) score = 0;
   @property({ type: Number }) streak = 0;
-  @property({ type: Number }) accuracy = 100;
+  /**
+   * Percentage correct, or `null` before any round has been graded — there is
+   * no accuracy yet, and showing 100% would claim a perfect record the learner
+   * has not earned.
+   */
+  @property({ type: Number }) accuracy: number | null = null;
 
   render() {
     return html`
@@ -29,7 +34,10 @@ export class EtStatsBar extends LitElement {
         <div class="row">
           <et-stat value=${String(this.score)} caption="Score"></et-stat>
           <et-stat value=${String(this.streak)} caption="Streak"></et-stat>
-          <et-stat value=${`${this.accuracy}%`} caption="Accuracy"></et-stat>
+          <et-stat
+            value=${this.accuracy === null ? '–' : `${this.accuracy}%`}
+            caption="Accuracy"
+          ></et-stat>
         </div>
       </et-card>
     `;

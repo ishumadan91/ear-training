@@ -12,7 +12,7 @@ const meta: Meta = {
       <et-stats-bar
         score=${score}
         streak=${streak}
-        accuracy=${accuracy}
+        .accuracy=${accuracy}
       ></et-stats-bar>
     </div>
   `,
@@ -22,4 +22,11 @@ export default meta;
 type Story = StoryObj;
 
 export const Default: Story = {};
-export const FreshSession: Story = { args: { score: 0, streak: 0, accuracy: 100 } };
+
+/**
+ * Before any round has been graded there is no accuracy to report, so the
+ * figure reads "–" rather than claiming a perfect 100%.
+ */
+export const FreshSession: Story = {
+  args: { score: 0, streak: 0, accuracy: null },
+};

@@ -73,7 +73,7 @@ export class EtPracticeTemplate extends LitElement {
   @property({ type: Boolean }) graded = false;
   @property({ type: Number }) score = 0;
   @property({ type: Number }) streak = 0;
-  @property({ type: Number }) accuracy = 100;
+  @property({ type: Number }) accuracy: number | null = null;
 
   render() {
     return html`
@@ -111,7 +111,7 @@ export class EtPracticeTemplate extends LitElement {
         ?graded=${this.graded}
         score=${this.score}
         streak=${this.streak}
-        accuracy=${this.accuracy}
+        .accuracy=${this.accuracy}
       ></et-practice-content>
     `;
   }

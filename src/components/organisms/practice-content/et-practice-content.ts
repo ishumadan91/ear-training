@@ -74,7 +74,7 @@ export class EtPracticeContent extends LitElement {
   @property({ type: Boolean }) graded = false;
   @property({ type: Number }) score = 0;
   @property({ type: Number }) streak = 0;
-  @property({ type: Number }) accuracy = 100;
+  @property({ type: Number }) accuracy: number | null = null;
 
   private _emit(name: string) {
     this.dispatchEvent(new CustomEvent(name, { bubbles: true, composed: true }));
@@ -131,7 +131,7 @@ export class EtPracticeContent extends LitElement {
       <et-stats-bar
         score=${this.score}
         streak=${this.streak}
-        accuracy=${this.accuracy}
+        .accuracy=${this.accuracy}
       ></et-stats-bar>
     `;
   }

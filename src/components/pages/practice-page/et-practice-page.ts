@@ -23,6 +23,7 @@ import {
   playSequence,
   type Instrument,
 } from '../../../audio/audio-engine.js';
+import { loadPreferences, savePreferences } from '../../../data/preferences.js';
 
 /** How a graded round turned out. */
 type Feedback = 'correct' | 'octave' | 'transposed' | 'wrong';
@@ -41,6 +42,7 @@ export class EtPracticePage extends LitElement {
     return this;
   }
 
+  // Seeded from stored preferences; progress below always starts fresh.
   @state() private notation: Notation = 'western';
   @state() private scaleKey = 'major';
   @state() private rootNote = 'C';
@@ -66,7 +68,26 @@ export class EtPracticePage extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    const prefs = loadPreferences();
+    this.notation = prefs.notation;
+    this.scaleKey = prefs.scaleKey;
+    this.rootNote = prefs.rootNote;
+    this.difficulty = prefs.difficulty;
+    this.instrument = prefs.instrument;
+    // Deal only after the preferences land, so the first tune already uses the
+    // restored scale and difficulty rather than the defaults.
     this._dealTune();
+  }
+
+  /** Persist the current settings. Progress is intentionally not stored. */
+  private _savePreferences() {
+    savePreferences({
+      notation: this.notation,
+      scaleKey: this.scaleKey,
+      rootNote: this.rootNote,
+      difficulty: this.difficulty,
+      instrument: this.instrument,
+    });
   }
 
   /* ---------- derived ---------- */
@@ -140,10 +161,10 @@ export class EtPracticePage extends LitElement {
     ];
   }
 
-  private get _accuracy(): number {
-    return this.totalCount > 0
-      ? Math.round((this.correctCount / this.totalCount) * 100)
-      : 100;
+  /** Null until a round has been graded — see `et-stats-bar.accuracy`. */
+  private get _accuracy(): number | null {
+    if (this.totalCount === 0) return null;
+    return Math.round((this.correctCount / this.totalCount) * 100);
   }
 
   /* ---------- round lifecycle ---------- */
@@ -175,21 +196,25 @@ export class EtPracticePage extends LitElement {
     this.notation = notation;
     // Each notation has its own scale list, so fall back to its first entry.
     this.scaleKey = SCALES[notation][0].key;
+    this._savePreferences();
     this._dealTune();
   };
 
   private _onDifficultyChange = (e: CustomEvent<{ value: string }>) => {
     this.difficulty = e.detail.value as Difficulty;
+    this._savePreferences();
     this._dealTune();
   };
 
   private _onScaleChange = (e: CustomEvent<{ value: string }>) => {
     this.scaleKey = e.detail.value;
+    this._savePreferences();
     this._dealTune();
   };
 
   private _onRootChange = (e: CustomEvent<{ value: string }>) => {
     this.rootNote = e.detail.value;
+    this._savePreferences();
   };
 
   private _onInstrumentChange = (e: CustomEvent<{ value: string }>) => {
@@ -197,6 +222,7 @@ export class EtPracticePage extends LitElement {
     // against a programmatic change mid-round.
     if (this.instrumentLocked) return;
     this.instrument = e.detail.value as Instrument;
+    this._savePreferences();
   };
 
   /* ---------- practice ---------- */
@@ -306,7 +332,7 @@ export class EtPracticePage extends LitElement {
         ?graded=${this.feedback !== null}
         score=${this.score}
         streak=${this.correctCount}
-        accuracy=${this._accuracy}
+        .accuracy=${this._accuracy}
         @et-icon-button-click=${this._onSettingsToggle}
         @et-notation-change=${this._onNotationChange}
         @et-difficulty-change=${this._onDifficultyChange}
