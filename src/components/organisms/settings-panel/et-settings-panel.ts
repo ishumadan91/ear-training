@@ -5,7 +5,6 @@ import '../../atoms/chip/et-chip.js';
 import '../../atoms/select/et-select.js';
 import '../../molecules/field/et-field.js';
 import '../../molecules/segmented/et-segmented.js';
-import type { SelectOption } from '../../atoms/select/et-select.js';
 import type { Difficulty, Notation } from '../../../data/scales.js';
 import { DIFFICULTY_LENGTH } from '../../../data/scales.js';
 import {
@@ -28,14 +27,16 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
 
 /**
  * et-settings-panel — the collapsible practice settings sheet: notation,
- * difficulty, root note, scale/thaat and instrument.
+ * difficulty and instrument.
+ *
+ * Scale and root deliberately live on the practice screen instead (see
+ * `et-practice-content`) — they change between rounds, so burying them behind
+ * a settings toggle would cost two taps every time.
  *
  * Presentational — it reports every change upward and holds no state itself.
  *
  * @fires et-notation-change   - CustomEvent<{ value: Notation }>
  * @fires et-difficulty-change - CustomEvent<{ value: Difficulty }>
- * @fires et-root-change       - CustomEvent<{ value: string }>
- * @fires et-scale-change      - CustomEvent<{ value: string }>
  * @fires et-instrument-change - CustomEvent<{ value: string }>
  */
 @customElement('et-settings-panel')
@@ -63,8 +64,6 @@ export class EtSettingsPanel extends LitElement {
 
   @property({ type: String }) notation: Notation = 'western';
   @property({ type: String }) difficulty: Difficulty = 'medium';
-  @property({ type: String }) rootNote = 'C';
-  @property({ type: String }) scaleKey = 'major';
   @property({ type: String }) instrument: Instrument = 'piano';
   /**
    * Set once the current tune has been played. Root, scale and instrument are
@@ -72,8 +71,6 @@ export class EtSettingsPanel extends LitElement {
    * given key, and moving it underneath a half-entered answer is confusing.
    */
   @property({ type: Boolean }) settingsLocked = false;
-  @property({ attribute: false }) rootOptions: SelectOption[] = [];
-  @property({ attribute: false }) scaleOptions: SelectOption[] = [];
 
   private _emit(name: string, value: string) {
     this.dispatchEvent(
@@ -82,7 +79,6 @@ export class EtSettingsPanel extends LitElement {
   }
 
   render() {
-    const scaleLabel = this.notation === 'western' ? 'Scale' : 'Thaat';
     return html`
       <et-card padding="sm">
         <div class="stack">
@@ -109,28 +105,6 @@ export class EtSettingsPanel extends LitElement {
                 `,
               )}
             </div>
-          </et-field>
-
-          <et-field label="Root note">
-            <et-select
-              label="Root note"
-              .options=${this.rootOptions}
-              value=${this.rootNote}
-              ?disabled=${this.settingsLocked}
-              @et-select-change=${(e: CustomEvent<{ value: string }>) =>
-                this._emit('et-root-change', e.detail.value)}
-            ></et-select>
-          </et-field>
-
-          <et-field label=${scaleLabel}>
-            <et-select
-              label=${scaleLabel}
-              .options=${this.scaleOptions}
-              value=${this.scaleKey}
-              ?disabled=${this.settingsLocked}
-              @et-select-change=${(e: CustomEvent<{ value: string }>) =>
-                this._emit('et-scale-change', e.detail.value)}
-            ></et-select>
           </et-field>
 
           <et-field label="Instrument">

@@ -11,6 +11,8 @@ const meta: Meta = {
       <et-practice-card
         ?playing=${args.playing}
         .slots=${args.slots}
+        ?canBackspace=${args.canBackspace}
+        @et-backspace=${() => console.log('backspace')}
         @et-play-toggle=${(e: CustomEvent) => console.log('play', e.detail)}
       ></et-practice-card>
     </div>
@@ -26,6 +28,7 @@ export const Empty: Story = {
 
 export const PartiallyAnswered: Story = {
   args: {
+    canBackspace: true,
     slots: [
       { value: 'C', state: 'filled', octave: 4 },
       { value: 'E', state: 'filled', octave: 3 },

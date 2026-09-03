@@ -1,7 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import '../../atoms/badge/et-badge.js';
 import '../../atoms/button/et-button.js';
+import '../../atoms/select/et-select.js';
 import '../../atoms/alert/et-alert.js';
 import '../../molecules/field/et-field.js';
 import '../piano/et-piano.js';
@@ -10,16 +10,15 @@ import '../stats-bar/et-stats-bar.js';
 import type { SlotData } from '../../molecules/input-row/et-input-row.js';
 import type { AlertTone } from '../../atoms/alert/et-alert.js';
 import type { Notation } from '../../../data/scales.js';
-
-export interface BadgeData {
-  label: string;
-  variant?: 'primary' | 'secondary';
-}
+import type { SelectOption } from '../../atoms/select/et-select.js';
 
 /**
- * et-practice-content — the scrollable practice body: status badges, the
- * listening card, the note keyboard, the Clear / Check actions, answer
- * feedback, and the session stats.
+ * et-practice-content — the scrollable practice body: the scale and root
+ * pickers, the listening card, the note keyboard, the Clear / Check actions,
+ * answer feedback, and the session stats.
+ *
+ * Scale and root sit here rather than in Settings — they are the two knobs a
+ * learner reaches for between rounds, so they stay one tap away.
  *
  * Presentational; every interaction leaves as an event.
  *
@@ -38,7 +37,7 @@ export class EtPracticeContent extends LitElement {
       gap: var(--space-4);
       padding: 0 var(--space-5) var(--space-5);
     }
-    .badges {
+    .pickers {
       display: flex;
       gap: var(--space-2);
       flex-wrap: wrap;
@@ -58,7 +57,12 @@ export class EtPracticeContent extends LitElement {
     }
   `;
 
-  @property({ attribute: false }) badges: BadgeData[] = [];
+  @property({ attribute: false }) scaleOptions: SelectOption[] = [];
+  @property({ attribute: false }) rootOptions: SelectOption[] = [];
+  @property({ type: String }) rootNote = 'C';
+  /** Root and scale are fixed once the round's tune has been played. */
+  @property({ type: Boolean }) settingsLocked = false;
+  @property({ type: Boolean }) canBackspace = false;
   @property({ type: Boolean }) playing = false;
   @property({ attribute: false }) slots: SlotData[] | null = null;
   @property({ type: String }) notation: Notation = 'western';
@@ -82,18 +86,39 @@ export class EtPracticeContent extends LitElement {
     this.dispatchEvent(new CustomEvent(name, { bubbles: true, composed: true }));
   }
 
+  private _emitValue(name: string, value: string) {
+    this.dispatchEvent(
+      new CustomEvent(name, { detail: { value }, bubbles: true, composed: true }),
+    );
+  }
+
   render() {
     return html`
-      <div class="badges">
-        ${this.badges.map(
-          (b) =>
-            html`<et-badge variant=${b.variant ?? 'secondary'} label=${b.label}></et-badge>`,
-        )}
+      <div class="pickers">
+        <et-select
+          variant="badge"
+          label=${this.notation === 'western' ? 'Scale' : 'Thaat'}
+          .options=${this.scaleOptions}
+          value=${this.scaleKey}
+          ?disabled=${this.settingsLocked}
+          @et-select-change=${(e: CustomEvent<{ value: string }>) =>
+            this._emitValue('et-scale-change', e.detail.value)}
+        ></et-select>
+        <et-select
+          variant="badge"
+          label="Root note"
+          .options=${this.rootOptions}
+          value=${this.rootNote}
+          ?disabled=${this.settingsLocked}
+          @et-select-change=${(e: CustomEvent<{ value: string }>) =>
+            this._emitValue('et-root-change', e.detail.value)}
+        ></et-select>
       </div>
 
       <et-practice-card
         ?playing=${this.playing}
         .slots=${this.slots}
+        ?canBackspace=${this.canBackspace}
       ></et-practice-card>
 
       <et-field label="Tap the notes">

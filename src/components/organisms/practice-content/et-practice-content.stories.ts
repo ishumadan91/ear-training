@@ -1,13 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/web-components';
 import { html } from 'lit';
 import './et-practice-content.js';
+import { ROOT_NOTES, SCALES } from '../../../data/scales.js';
 
-const badges = [
-  { label: 'Round 3', variant: 'primary' as const },
-  { label: 'Streak 8' },
-  { label: 'Major scale' },
-  { label: 'Root C' },
-];
+const rootOptions = ROOT_NOTES.map((n) => ({ value: n, label: `Root ${n}` }));
+const scaleOptions = SCALES.western.map((s) => ({ value: s.key, label: s.label }));
 
 const meta: Meta = {
   title: 'Organisms/Practice Content',
@@ -17,7 +14,11 @@ const meta: Meta = {
   render: (args) => html`
     <div style="max-width:420px;margin:0 auto;background:var(--color-bg);padding-top:16px">
       <et-practice-content
-        .badges=${args.badges ?? badges}
+        .scaleOptions=${args.scaleOptions ?? scaleOptions}
+        .rootOptions=${rootOptions}
+        rootNote=${args.rootNote ?? 'C'}
+        ?settingsLocked=${args.settingsLocked}
+        ?canBackspace=${args.canBackspace}
         ?playing=${args.playing}
         .slots=${args.slots}
         notation=${args.notation ?? 'western'}
@@ -123,17 +124,26 @@ export const Wrong: Story = {
 export const IndianNotation: Story = {
   args: {
     notation: 'indian',
-    badges: [
-      { label: 'Round 2', variant: 'primary' as const },
-      { label: 'Streak 4' },
-      { label: 'Bhairav thaat' },
-      { label: 'Root D' },
-    ],
+    scaleOptions: SCALES.indian.map((s) => ({ value: s.key, label: s.label })),
+    rootNote: 'D',
     slots: [
       { value: 'Sa', state: 'filled', octave: 3 },
       { value: 'Ga', state: 'filled', octave: 4 },
       {},
       {},
     ],
+  },
+};
+
+/** Root and scale lock once the round's tune has been played. */
+export const SettingsLocked: Story = {
+  args: { settingsLocked: true, slots: [{}, {}, {}, {}] },
+};
+
+/** The backspace enables as soon as a note is entered. */
+export const Backspaceable: Story = {
+  args: {
+    canBackspace: true,
+    slots: [{ value: 'C', state: 'filled', octave: 4 }, {}, {}, {}],
   },
 };

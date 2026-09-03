@@ -6,10 +6,15 @@ export interface SelectOption {
   label: string;
 }
 
+export type SelectVariant = 'field' | 'badge';
+
 /**
- * et-select — a styled native `<select>`. Used for root note, scale/thaat and
- * instrument in the settings panel. Native on purpose: it gets the platform
- * picker on mobile for free.
+ * et-select — a styled native `<select>`. Native on purpose: it gets the
+ * platform picker on mobile for free.
+ *
+ *   - `field` — full-width form control, used inside the settings panel.
+ *   - `badge` — a pill that sits inline with the status row, for the scale and
+ *     root pickers that live on the practice screen itself.
  *
  * @fires et-select-change - CustomEvent<{ value: string }>
  */
@@ -18,6 +23,9 @@ export class EtSelect extends LitElement {
   static styles = css`
     :host {
       display: block;
+    }
+    :host([variant='badge']) {
+      display: inline-block;
     }
     select {
       box-sizing: border-box;
@@ -46,12 +54,29 @@ export class EtSelect extends LitElement {
       opacity: 0.5;
       cursor: not-allowed;
     }
+    :host([variant='badge']) select {
+      width: auto;
+      height: auto;
+      padding: var(--space-1) var(--space-6) var(--space-1) var(--space-3);
+      border-color: var(--color-border);
+      border-radius: var(--radius-pill);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-heading);
+      white-space: nowrap;
+      background-position: right var(--space-2) center;
+      background-size: 14px 14px;
+    }
+    :host([variant='badge']) select:hover:not([disabled]) {
+      background-color: var(--color-surface-muted);
+    }
   `;
 
   @property({ attribute: false }) options: SelectOption[] = [];
   @property({ type: String }) value = '';
   @property({ type: String }) label = '';
   @property({ type: Boolean, reflect: true }) disabled = false;
+  @property({ type: String, reflect: true }) variant: SelectVariant = 'field';
 
   private _onChange(e: Event) {
     const value = (e.target as HTMLSelectElement).value;

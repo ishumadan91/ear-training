@@ -6,13 +6,6 @@ import { ROOT_NOTES, SCALES } from '../../../data/scales.js';
 const rootOptions = ROOT_NOTES.map((n) => ({ value: n, label: n }));
 const westernScales = SCALES.western.map((s) => ({ value: s.key, label: s.label }));
 
-const badges = [
-  { label: 'Round 3', variant: 'primary' as const },
-  { label: 'Streak 8' },
-  { label: 'Major scale' },
-  { label: 'Root C' },
-];
-
 const meta: Meta = {
   title: 'Templates/Practice Template',
   component: 'et-practice-template',
@@ -32,7 +25,6 @@ const meta: Meta = {
         ?settingsLocked=${args.settingsLocked}
         .rootOptions=${rootOptions}
         .scaleOptions=${westernScales}
-        .badges=${badges}
         .slots=${args.slots}
         score="8"
         streak="8"

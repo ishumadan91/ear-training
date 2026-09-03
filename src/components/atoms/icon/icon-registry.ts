@@ -88,6 +88,13 @@ export const icons = {
       <path d="M12 6.9a1.15 1.15 0 100 2.3 1.15 1.15 0 000-2.3z" fill="currentColor"/>
       <path d="M11.1 10.9h1.8v6.2h-1.8z" fill="currentColor"/>`,
   },
+  backspace: {
+    viewBox: '0 0 24 24',
+    render: () => svg`
+      <path d="M20 5H8l-6 7 6 7h12a2 2 0 002-2V7a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M13 10l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M17 10l-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`,
+  },
   settings: {
     viewBox: '0 0 24 24',
     render: () =>

@@ -4,7 +4,6 @@ import '../../atoms/icon-button/et-icon-button.js';
 import '../../organisms/settings-panel/et-settings-panel.js';
 import '../../organisms/about-sheet/et-about-sheet.js';
 import '../../organisms/practice-content/et-practice-content.js';
-import type { BadgeData } from '../../organisms/practice-content/et-practice-content.js';
 import type { SlotData } from '../../molecules/input-row/et-input-row.js';
 import type { SelectOption } from '../../atoms/select/et-select.js';
 import type { AlertTone } from '../../atoms/alert/et-alert.js';
@@ -72,7 +71,7 @@ export class EtPracticeTemplate extends LitElement {
   @property({ attribute: false }) scaleOptions: SelectOption[] = [];
 
   /* practice */
-  @property({ attribute: false }) badges: BadgeData[] = [];
+  @property({ type: Boolean }) canBackspace = false;
   @property({ type: Boolean }) playing = false;
   @property({ attribute: false }) slots: SlotData[] | null = null;
   /* the piano labels its keys from the notation, declared above */
@@ -116,18 +115,18 @@ export class EtPracticeTemplate extends LitElement {
         ? html`<et-settings-panel
             notation=${this.notation}
             difficulty=${this.difficulty}
-            rootNote=${this.rootNote}
-            scaleKey=${this.scaleKey}
             instrument=${this.instrument}
             ?settingsLocked=${this.settingsLocked}
-            .rootOptions=${this.rootOptions}
-            .scaleOptions=${this.scaleOptions}
           ></et-settings-panel>`
         : nothing}
 
       <et-practice-content
         class="body"
-        .badges=${this.badges}
+        .scaleOptions=${this.scaleOptions}
+        .rootOptions=${this.rootOptions}
+        rootNote=${this.rootNote}
+        ?settingsLocked=${this.settingsLocked}
+        ?canBackspace=${this.canBackspace}
         ?playing=${this.playing}
         .slots=${this.slots}
         notation=${this.notation}

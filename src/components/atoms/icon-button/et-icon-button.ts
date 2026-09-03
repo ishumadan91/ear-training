@@ -40,6 +40,14 @@ export class EtIconButton extends LitElement {
       outline: 2px solid var(--color-navy);
       outline-offset: 2px;
     }
+    button[disabled] {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+    button[disabled]:hover {
+      background: var(--color-surface);
+      border-color: var(--color-border);
+    }
     :host([active]) button {
       background: var(--color-teal-100);
       border-color: var(--color-primary);
@@ -51,8 +59,10 @@ export class EtIconButton extends LitElement {
   @property({ type: String }) label = '';
   @property({ type: Number }) size = 18;
   @property({ type: Boolean, reflect: true }) active = false;
+  @property({ type: Boolean, reflect: true }) disabled = false;
 
   private _onClick() {
+    if (this.disabled) return;
     this.dispatchEvent(
       new CustomEvent('et-icon-button-click', { bubbles: true, composed: true }),
     );
@@ -63,6 +73,7 @@ export class EtIconButton extends LitElement {
       <button
         aria-label=${this.label}
         aria-pressed=${this.active ? 'true' : 'false'}
+        ?disabled=${this.disabled}
         @click=${this._onClick}
       >
         <et-icon name=${this.name} size=${this.size}></et-icon>

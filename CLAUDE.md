@@ -110,6 +110,17 @@ Keys outside the scale are **dimmed, not disabled** (`.out-of-scale`) — a hint
 not a rail; tapping a wrong note is how the exercise tests you. The dimming and
 the tune pool both read `scalePitchClasses()`, so they can never disagree.
 
+**Scale and root live on the practice screen**, not in Settings — as pill
+selects (`et-select variant="badge"`) in the row above the listening card. They
+change between rounds, so burying them behind a settings toggle would cost two
+taps every time. Settings keeps only notation, difficulty and instrument. The
+old Round/Streak/scale/root badges are gone; streak still shows in the stats
+card, and `round` is tracked but no longer displayed.
+
+A **backspace** beside the answer slots removes the last entered note. Using it
+after a round has been graded clears the feedback and restores the Clear /
+Check row — an undo of the grade, which is what the design intends.
+
 The header carries **two** icon buttons (About, Settings). They fire the same
 `et-icon-button-click`, so `et-practice-template` names the intent and re-emits
 `et-about-toggle` / `et-settings-toggle`. Anything selecting the header button

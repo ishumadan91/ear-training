@@ -1,11 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/web-components';
 import { html } from 'lit';
 import './et-settings-panel.js';
-import { ROOT_NOTES, SCALES } from '../../../data/scales.js';
-
-const rootOptions = ROOT_NOTES.map((n) => ({ value: n, label: n }));
-const westernScales = SCALES.western.map((s) => ({ value: s.key, label: s.label }));
-const indianThaats = SCALES.indian.map((s) => ({ value: s.key, label: s.label }));
 
 const meta: Meta = {
   title: 'Organisms/Settings Panel',
@@ -16,16 +11,11 @@ const meta: Meta = {
       <et-settings-panel
         notation=${args.notation}
         difficulty=${args.difficulty}
-        rootNote=${args.rootNote}
-        scaleKey=${args.scaleKey}
         instrument=${args.instrument ?? 'piano'}
         ?settingsLocked=${args.settingsLocked}
-        .rootOptions=${rootOptions}
-        .scaleOptions=${args.scaleOptions}
         @et-notation-change=${(e: CustomEvent) => console.log('notation', e.detail)}
         @et-difficulty-change=${(e: CustomEvent) => console.log('difficulty', e.detail)}
-        @et-scale-change=${(e: CustomEvent) => console.log('scale', e.detail)}
-        @et-root-change=${(e: CustomEvent) => console.log('root', e.detail)}
+        @et-instrument-change=${(e: CustomEvent) => console.log('instrument', e.detail)}
       ></et-settings-panel>
     </div>
   `,
@@ -34,38 +24,26 @@ export default meta;
 
 type Story = StoryObj;
 
+/**
+ * Scale and root are no longer here — they live on the practice screen as
+ * pill selects, since they change between rounds.
+ */
 export const Western: Story = {
-  args: {
-    notation: 'western',
-    difficulty: 'medium',
-    rootNote: 'C',
-    scaleKey: 'major',
-    scaleOptions: westernScales,
-  },
+  args: { notation: 'western', difficulty: 'medium' },
 };
 
 export const Indian: Story = {
-  args: {
-    notation: 'indian',
-    difficulty: 'hard',
-    rootNote: 'D',
-    scaleKey: 'bhairav',
-    scaleOptions: indianThaats,
-  },
+  args: { notation: 'indian', difficulty: 'hard' },
 };
 
 /**
  * Once the tune has been played, root, scale and instrument are all fixed for
- * the round — the controls disable and the hint says so. Changes land on the
- * next tune.
+ * the round — here the instrument control disables and the hint says so.
  */
 export const SettingsLocked: Story = {
   args: {
     notation: 'western',
     difficulty: 'medium',
-    rootNote: 'C',
-    scaleKey: 'major',
-    scaleOptions: westernScales,
     instrument: 'guitar',
     settingsLocked: true,
   },

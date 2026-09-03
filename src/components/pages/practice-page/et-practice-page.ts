@@ -2,14 +2,12 @@ import { LitElement, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import '../../templates/practice-template/et-practice-template.js';
 import type { SlotData } from '../../molecules/input-row/et-input-row.js';
-import type { BadgeData } from '../../organisms/practice-content/et-practice-content.js';
 import type { AlertTone } from '../../atoms/alert/et-alert.js';
 import {
   DIFFICULTY_LENGTH,
   ROOT_NOTES,
   SCALES,
   absPitch,
-  findScale,
   newTune,
   scalePool,
   semitoneOf,
@@ -113,10 +111,6 @@ export class EtPracticePage extends LitElement {
 
   /* ---------- derived ---------- */
 
-  private get _scale() {
-    return findScale(this.notation, this.scaleKey);
-  }
-
   /**
    * Semitone the selected root sits on.
    *
@@ -178,17 +172,6 @@ export class EtPracticePage extends LitElement {
     });
   }
 
-  private get _badges(): BadgeData[] {
-    const unit = this.notation === 'western' ? 'scale' : 'thaat';
-    return [
-      { label: `Round ${this.round}`, variant: 'primary' },
-      { label: `Streak ${this.correctCount}` },
-      { label: `${this._scale.label} ${unit}` },
-      { label: `Root ${this.rootNote}` },
-    ];
-  }
-
-  /** Null until a round has been graded — see `et-stats-bar.accuracy`. */
   private get _accuracy(): number | null {
     if (this.totalCount === 0) return null;
     return Math.round((this.correctCount / this.totalCount) * 100);
@@ -292,6 +275,19 @@ export class EtPracticePage extends LitElement {
     this.answers = next;
   };
 
+  /** Remove the last note entered, so a single mistap doesn't cost the row. */
+  private _onBackspace = () => {
+    const next = this.answers.slice();
+    for (let i = next.length - 1; i >= 0; i--) {
+      if (next[i] !== null) {
+        next[i] = null;
+        this.answers = next;
+        this.feedback = null;
+        return;
+      }
+    }
+  };
+
   private _onClear = () => {
     this.answers = new Array(this.answers.length).fill(null);
     this.feedback = null;
@@ -361,7 +357,7 @@ export class EtPracticePage extends LitElement {
         rootOffset=${this._rootOffset}
         .rootOptions=${rootOptions}
         .scaleOptions=${scaleOptions}
-        .badges=${this._badges}
+        ?canBackspace=${this.answers.some((a) => a !== null)}
         ?playing=${this.playing}
         .slots=${this._slots}
         .feedbackTone=${this._feedbackTone}
@@ -381,6 +377,7 @@ export class EtPracticePage extends LitElement {
         @et-instrument-change=${this._onInstrumentChange}
         @et-play-toggle=${this._onPlayToggle}
         @et-note-press=${this._onNotePress}
+        @et-backspace=${this._onBackspace}
         @et-clear=${this._onClear}
         @et-check=${this._onCheck}
         @et-next=${this._onNext}
