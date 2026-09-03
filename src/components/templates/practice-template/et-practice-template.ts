@@ -1,0 +1,124 @@
+import { LitElement, html, css, nothing } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import '../../atoms/icon-button/et-icon-button.js';
+import '../../organisms/settings-panel/et-settings-panel.js';
+import '../../organisms/practice-content/et-practice-content.js';
+import type { BadgeData } from '../../organisms/practice-content/et-practice-content.js';
+import type { SlotData } from '../../molecules/input-row/et-input-row.js';
+import type { SelectOption } from '../../atoms/select/et-select.js';
+import type { AlertTone } from '../../atoms/alert/et-alert.js';
+import type { Difficulty, Notation } from '../../../data/scales.js';
+
+/**
+ * et-practice-template — the Practice screen's layout: a title row with the
+ * settings toggle, the settings sheet when open, and the scrollable practice
+ * body beneath. Presentation only; it forwards data in and lets events bubble
+ * out. The page component owns state.
+ */
+@customElement('et-practice-template')
+export class EtPracticeTemplate extends LitElement {
+  static styles = css`
+    :host {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 100%;
+      background: var(--color-bg);
+      font-family: var(--font-family-base);
+      overflow: hidden;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-5) var(--space-3);
+      flex-shrink: 0;
+    }
+    .title {
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-muted);
+    }
+    et-settings-panel {
+      margin: 0 var(--space-5) var(--space-3);
+      flex-shrink: 0;
+    }
+    .body {
+      flex: 1 1 auto;
+      overflow-y: auto;
+    }
+  `;
+
+  @property({ type: String }) heading = 'Name the notes';
+  @property({ type: Boolean }) settingsOpen = false;
+
+  /* settings */
+  @property({ type: String }) notation: Notation = 'western';
+  @property({ type: String }) difficulty: Difficulty = 'medium';
+  @property({ type: String }) rootNote = 'C';
+  @property({ type: String }) scaleKey = 'major';
+  @property({ type: String }) instrument = 'piano';
+  @property({ type: Boolean }) instrumentLocked = false;
+  @property({ attribute: false }) rootOptions: SelectOption[] = [];
+  @property({ attribute: false }) scaleOptions: SelectOption[] = [];
+
+  /* practice */
+  @property({ attribute: false }) badges: BadgeData[] = [];
+  @property({ type: Boolean }) playing = false;
+  @property({ attribute: false }) slots: SlotData[] | null = null;
+  /* the piano labels its keys from the notation, declared above */
+  @property({ type: String }) feedbackTone: AlertTone | null = null;
+  @property({ type: String }) feedbackText = '';
+  @property({ type: String }) feedbackDetail = '';
+  @property({ type: Boolean }) graded = false;
+  @property({ type: Number }) score = 0;
+  @property({ type: Number }) streak = 0;
+  @property({ type: Number }) accuracy = 100;
+
+  render() {
+    return html`
+      <div class="header">
+        <span class="title">${this.heading}</span>
+        <et-icon-button
+          name="settings"
+          label="Settings"
+          ?active=${this.settingsOpen}
+        ></et-icon-button>
+      </div>
+
+      ${this.settingsOpen
+        ? html`<et-settings-panel
+            notation=${this.notation}
+            difficulty=${this.difficulty}
+            rootNote=${this.rootNote}
+            scaleKey=${this.scaleKey}
+            instrument=${this.instrument}
+            ?instrumentLocked=${this.instrumentLocked}
+            .rootOptions=${this.rootOptions}
+            .scaleOptions=${this.scaleOptions}
+          ></et-settings-panel>`
+        : nothing}
+
+      <et-practice-content
+        class="body"
+        .badges=${this.badges}
+        ?playing=${this.playing}
+        .slots=${this.slots}
+        notation=${this.notation}
+        .feedbackTone=${this.feedbackTone}
+        feedbackText=${this.feedbackText}
+        feedbackDetail=${this.feedbackDetail}
+        ?graded=${this.graded}
+        score=${this.score}
+        streak=${this.streak}
+        accuracy=${this.accuracy}
+      ></et-practice-content>
+    `;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'et-practice-template': EtPracticeTemplate;
+  }
+}

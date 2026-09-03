@@ -1,0 +1,35 @@
+/* Global resets + app-level layout. Component-internal styling lives in each
+   component's Shadow DOM; only document-level concerns belong here. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-base);
+  color: var(--color-text);
+  background: var(--color-neutral-100);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Center the mobile app frame on larger viewports */
+et-practice-page {
+  display: block;
+  max-width: var(--app-max-width);
+  height: 100vh;
+  margin: 0 auto;
+  background: var(--color-bg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}

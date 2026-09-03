@@ -1,3 +1,12 @@
 node_modules/
 package-lock.json
 .vscode
+.DS_Store
+
+# Build output
+dist/
+storybook-static/
+
+# Logs
+*.log
+npm-debug.log*
