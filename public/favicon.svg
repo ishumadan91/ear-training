@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Ear Training">
+  <!--
+    The app's own waveform motif: Bright Teal ground (teal = "making sound"),
+    Light Sand bars, and the peak in Warm Coral. A filled tile rather than a
+    bare glyph, so it holds up against both light and dark browser chrome.
+
+    Bars are deliberately chunky — at a 16px tab size anything thinner than
+    ~1.8px washes out to a smudge.
+  -->
+  <rect width="32" height="32" rx="7" fill="#008080"/>
+  <g fill="#F4F1DE">
+    <rect x="2.6"  y="11.5" width="3.6" height="9"  rx="1.8"/>
+    <rect x="8.4"  y="8"    width="3.6" height="16" rx="1.8"/>
+    <rect x="20"   y="8.5"  width="3.6" height="15" rx="1.8"/>
+    <rect x="25.8" y="11"   width="3.6" height="10" rx="1.8"/>
+  </g>
+  <rect x="14.2" y="4.5" width="3.6" height="23" rx="1.8" fill="#FF6F61"/>
+</svg>
