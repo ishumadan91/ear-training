@@ -2,6 +2,7 @@ import { LitElement, html, css, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import '../../atoms/icon-button/et-icon-button.js';
 import '../../organisms/settings-panel/et-settings-panel.js';
+import '../../organisms/about-sheet/et-about-sheet.js';
 import '../../organisms/practice-content/et-practice-content.js';
 import type { BadgeData } from '../../organisms/practice-content/et-practice-content.js';
 import type { SlotData } from '../../molecules/input-row/et-input-row.js';
@@ -26,6 +27,12 @@ export class EtPracticeTemplate extends LitElement {
       background: var(--color-bg);
       font-family: var(--font-family-base);
       overflow: hidden;
+      /* the About sheet's scrim is absolute against this frame */
+      position: relative;
+    }
+    .actions {
+      display: flex;
+      gap: var(--space-2);
     }
     .header {
       display: flex;
@@ -51,14 +58,16 @@ export class EtPracticeTemplate extends LitElement {
 
   @property({ type: String }) heading = 'Name the notes';
   @property({ type: Boolean }) settingsOpen = false;
+  @property({ type: Boolean }) aboutOpen = false;
 
   /* settings */
   @property({ type: String }) notation: Notation = 'western';
   @property({ type: String }) difficulty: Difficulty = 'medium';
   @property({ type: String }) rootNote = 'C';
+  @property({ type: Number }) rootOffset = 0;
   @property({ type: String }) scaleKey = 'major';
   @property({ type: String }) instrument = 'piano';
-  @property({ type: Boolean }) instrumentLocked = false;
+  @property({ type: Boolean }) settingsLocked = false;
   @property({ attribute: false }) rootOptions: SelectOption[] = [];
   @property({ attribute: false }) scaleOptions: SelectOption[] = [];
 
@@ -75,16 +84,33 @@ export class EtPracticeTemplate extends LitElement {
   @property({ type: Number }) streak = 0;
   @property({ type: Number }) accuracy: number | null = null;
 
+  /** Both header buttons fire the same event, so name the intent here. */
+  private _emit(name: string) {
+    this.dispatchEvent(new CustomEvent(name, { bubbles: true, composed: true }));
+  }
+
   render() {
     return html`
       <div class="header">
         <span class="title">${this.heading}</span>
-        <et-icon-button
-          name="settings"
-          label="Settings"
-          ?active=${this.settingsOpen}
-        ></et-icon-button>
+        <div class="actions">
+          <et-icon-button
+            name="about"
+            label="About"
+            size="16"
+            ?active=${this.aboutOpen}
+            @et-icon-button-click=${() => this._emit('et-about-toggle')}
+          ></et-icon-button>
+          <et-icon-button
+            name="settings"
+            label="Settings"
+            ?active=${this.settingsOpen}
+            @et-icon-button-click=${() => this._emit('et-settings-toggle')}
+          ></et-icon-button>
+        </div>
       </div>
+
+      <et-about-sheet ?open=${this.aboutOpen}></et-about-sheet>
 
       ${this.settingsOpen
         ? html`<et-settings-panel
@@ -93,7 +119,7 @@ export class EtPracticeTemplate extends LitElement {
             rootNote=${this.rootNote}
             scaleKey=${this.scaleKey}
             instrument=${this.instrument}
-            ?instrumentLocked=${this.instrumentLocked}
+            ?settingsLocked=${this.settingsLocked}
             .rootOptions=${this.rootOptions}
             .scaleOptions=${this.scaleOptions}
           ></et-settings-panel>`
@@ -105,6 +131,8 @@ export class EtPracticeTemplate extends LitElement {
         ?playing=${this.playing}
         .slots=${this.slots}
         notation=${this.notation}
+        rootOffset=${this.rootOffset}
+        scaleKey=${this.scaleKey}
         .feedbackTone=${this.feedbackTone}
         feedbackText=${this.feedbackText}
         feedbackDetail=${this.feedbackDetail}

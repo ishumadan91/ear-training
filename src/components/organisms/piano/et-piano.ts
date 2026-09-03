@@ -1,10 +1,10 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import {
-  CHROMATIC,
   OCTAVES,
   absPitch,
   buildKeyboard,
+  scalePitchClasses,
   type KeyboardKey,
   type Notation,
 } from '../../../data/scales.js';
@@ -18,9 +18,12 @@ import {
  *
  * The keyboard is chromatic rather than scale-filtered, which means a learner
  * can tap notes outside the current scale — that's deliberate, and it's what
- * makes the exercise a real test.
+ * makes the exercise a real test. Keys outside the scale are dimmed rather
+ * than disabled: a hint, not a rail.
  *
- * Key labels follow the notation: `C D E …` for Western, sargam for Indian.
+ * Key labels follow the notation. Western names are absolute — C is always C.
+ * Sargam is relative, so the syllables rotate to place Sa on the current root;
+ * a key still sounds its own pitch either way.
  *
  * @fires et-note-press - CustomEvent<{ name, octave, semitone, pitch }>
  *   `semitone` is the pitch class (0–11); `pitch` is absolute, so the two C
@@ -79,6 +82,13 @@ export class EtPiano extends LitElement {
     .white:active {
       background: color-mix(in oklab, var(--color-primary) 15%, white);
     }
+    .white.out-of-scale {
+      background: var(--color-neutral-200);
+      color: var(--color-text-muted);
+    }
+    .white.out-of-scale:hover {
+      background: var(--color-neutral-300);
+    }
     .black {
       position: absolute;
       top: 0;
@@ -96,6 +106,12 @@ export class EtPiano extends LitElement {
     .black:active {
       background: var(--color-primary);
     }
+    .black.out-of-scale {
+      background: var(--color-neutral-500);
+    }
+    .black.out-of-scale:hover {
+      background: var(--color-neutral-600);
+    }
     button:focus-visible {
       outline: 2px solid var(--color-primary);
       outline-offset: -2px;
@@ -108,6 +124,10 @@ export class EtPiano extends LitElement {
 
   /** Which note vocabulary to label the keys with. */
   @property({ type: String }) notation: Notation = 'western';
+  /** Semitone of the current root — moves Sa for Indian notation. */
+  @property({ type: Number }) rootOffset = 0;
+  /** Scale whose notes stay full-strength; the rest are dimmed. */
+  @property({ type: String }) scaleKey = '';
   /** Which octaves to span, by real octave number. */
   @property({ attribute: false }) octaves: number[] = OCTAVES;
   @property({ type: Boolean, reflect: true }) disabled = false;
@@ -125,8 +145,17 @@ export class EtPiano extends LitElement {
   }
 
   render() {
-    const names = CHROMATIC[this.notation] ?? CHROMATIC.western;
-    const { whiteKeys, blackKeys, width } = buildKeyboard(names, this.octaves);
+    const { whiteKeys, blackKeys, width } = buildKeyboard(
+      this.notation,
+      this.rootOffset,
+      this.octaves,
+    );
+    // No scale selected → nothing is "outside" it, so leave every key lit.
+    const inScale = this.scaleKey
+      ? scalePitchClasses(this.notation, this.scaleKey, this.rootOffset)
+      : null;
+    const cls = (base: string, k: KeyboardKey) =>
+      inScale && !inScale.has(k.semitone) ? `${base} out-of-scale` : base;
 
     return html`
       <div class="scroll">
@@ -139,7 +168,7 @@ export class EtPiano extends LitElement {
           ${whiteKeys.map(
             (k) => html`
               <button
-                class="white"
+                class=${cls('white', k)}
                 style="width:${k.width}px"
                 ?disabled=${this.disabled}
                 aria-label=${`${k.name} ${k.octave}`}
@@ -152,7 +181,7 @@ export class EtPiano extends LitElement {
           ${blackKeys.map(
             (k) => html`
               <button
-                class="black"
+                class=${cls('black', k)}
                 style="left:${k.left}px;width:${k.width}px"
                 ?disabled=${this.disabled}
                 aria-label=${`${k.name} ${k.octave}`}

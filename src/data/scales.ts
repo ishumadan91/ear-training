@@ -121,18 +121,47 @@ export interface KeyboardLayout {
 }
 
 /**
+ * The label a key carries, which depends on how the notation names pitches.
+ *
+ * Western names are **absolute**: C is C whatever the root is. Sargam names
+ * are **relative** — Sa *is* the tonic — so the syllables rotate to put Sa on
+ * the selected root. At root A♯, the A♯ key reads "Sa" and the C key reads
+ * "Re".
+ *
+ * Neither case changes what a key *sounds*: a key always plays its own pitch.
+ */
+export function keyLabel(
+  notation: Notation,
+  semitone: number,
+  rootOffset = 0,
+): string {
+  if (notation === 'indian') {
+    return CHROMATIC.indian[(((semitone - rootOffset) % 12) + 12) % 12];
+  }
+  return CHROMATIC.western[((semitone % 12) + 12) % 12];
+}
+
+/**
  * Lay out the chromatic keyboard across `octaves`. White keys flow in a row;
  * black keys are positioned absolutely, straddling the seam between the white
  * keys either side of them.
  */
-export function buildKeyboard(names: string[], octaves: number[] = OCTAVES): KeyboardLayout {
+export function buildKeyboard(
+  notation: Notation,
+  rootOffset = 0,
+  octaves: number[] = OCTAVES,
+): KeyboardLayout {
   const whiteKeys: KeyboardKey[] = [];
   const blackKeys: KeyboardKey[] = [];
   let whiteCount = 0;
 
   for (const octave of octaves) {
     for (let semitone = 0; semitone < 12; semitone++) {
-      const note: Note = { name: names[semitone], octave, semitone };
+      const note: Note = {
+        name: keyLabel(notation, semitone, rootOffset),
+        octave,
+        semitone,
+      };
       if (BLACK_POSITIONS.has(semitone)) {
         blackKeys.push({
           ...note,
@@ -149,28 +178,61 @@ export function buildKeyboard(names: string[], octaves: number[] = OCTAVES): Key
   return { whiteKeys, blackKeys, width: whiteCount * WHITE_KEY_WIDTH };
 }
 
+/** Every key on the keyboard, low to high. */
+export function allKeys(
+  notation: Notation,
+  rootOffset = 0,
+  octaves: number[] = OCTAVES,
+): KeyboardKey[] {
+  const { whiteKeys, blackKeys } = buildKeyboard(notation, rootOffset, octaves);
+  return [...whiteKeys, ...blackKeys].sort((a, b) => absPitch(a) - absPitch(b));
+}
+
 /**
- * Every note of the chosen scale, in every octave the keyboard covers — the
- * pool a tune is drawn from.
+ * The scale's intervals above its tonic, in semitones — `[0, 2, 4, 5, 7, 9, 11]`
+ * for a major scale. The scale tables are written from C / Sa, so a note's own
+ * semitone *is* its degree.
+ */
+export function scaleDegrees(notation: Notation, scaleKey: string): number[] {
+  return findScale(notation, scaleKey).notes.map(semitoneOf);
+}
+
+/**
+ * The pitch classes (0–11, absolute) the scale occupies at the given root.
  *
- * Pitch classes come from `semitoneOf`, not from indexing the keyboard's own
- * label list: the Western pools spell black keys with flats (`E♭`) while the
- * keyboard spells them with sharps (`D♯`), so a lookup by label would leave
- * every flat-spelled note unresolvable.
+ * Used both to draw the tune pool and to dim the keys that fall outside the
+ * scale — the two must agree, so they share this one source.
+ */
+export function scalePitchClasses(
+  notation: Notation,
+  scaleKey: string,
+  rootOffset = 0,
+): Set<number> {
+  return new Set(
+    scaleDegrees(notation, scaleKey).map((d) => (((d + rootOffset) % 12) + 12) % 12),
+  );
+}
+
+/**
+ * The notes a tune may be drawn from: every key on the keyboard whose interval
+ * above the root belongs to the scale.
+ *
+ * Deriving the pool from the keyboard rather than from the scale table has two
+ * consequences that matter. Every pool note is guaranteed to be tappable — a
+ * pitch computed independently could land outside the keyboard's range once
+ * the root shifts it. And each note carries the label of the key that plays
+ * it, so what the learner reads always matches what they hear.
  */
 export function scalePool(
   notation: Notation,
   scaleKey: string,
+  rootOffset = 0,
   octaves: number[] = OCTAVES,
 ): Note[] {
-  const names = findScale(notation, scaleKey).notes;
-  const pool: Note[] = [];
-  for (const octave of octaves) {
-    for (const name of names) {
-      pool.push({ name, octave, semitone: semitoneOf(name) });
-    }
-  }
-  return pool;
+  const inScale = scalePitchClasses(notation, scaleKey, rootOffset);
+  return allKeys(notation, rootOffset, octaves)
+    .filter((k) => inScale.has(k.semitone))
+    .map(({ name, octave, semitone }) => ({ name, octave, semitone }));
 }
 
 /** Look up a scale by key, falling back to the notation's first entry. */

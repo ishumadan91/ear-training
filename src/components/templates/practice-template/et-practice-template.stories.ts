@@ -23,12 +23,13 @@ const meta: Meta = {
       <et-practice-template
         heading="Name the notes"
         ?settingsOpen=${args.settingsOpen}
+        ?aboutOpen=${args.aboutOpen}
         notation="western"
         difficulty="medium"
         rootNote="C"
         scaleKey="major"
         instrument=${args.instrument ?? 'piano'}
-        ?instrumentLocked=${args.instrumentLocked}
+        ?settingsLocked=${args.settingsLocked}
         .rootOptions=${rootOptions}
         .scaleOptions=${westernScales}
         .badges=${badges}
@@ -50,4 +51,9 @@ export const Default: Story = {
 
 export const SettingsOpen: Story = {
   args: { settingsOpen: true, slots: [{}, {}, {}, {}] },
+};
+
+/** The About sheet over the practice screen. */
+export const AboutOpen: Story = {
+  args: { settingsOpen: false, aboutOpen: true, slots: [{}, {}, {}, {}] },
 };

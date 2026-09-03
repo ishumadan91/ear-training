@@ -67,10 +67,11 @@ export class EtSettingsPanel extends LitElement {
   @property({ type: String }) scaleKey = 'major';
   @property({ type: String }) instrument: Instrument = 'piano';
   /**
-   * Set once the current tune has been played — the instrument is fixed for
-   * the rest of the round so the pairing can't be swapped mid-answer.
+   * Set once the current tune has been played. Root, scale and instrument are
+   * all fixed for the rest of the round — the learner has heard a tune in a
+   * given key, and moving it underneath a half-entered answer is confusing.
    */
-  @property({ type: Boolean }) instrumentLocked = false;
+  @property({ type: Boolean }) settingsLocked = false;
   @property({ attribute: false }) rootOptions: SelectOption[] = [];
   @property({ attribute: false }) scaleOptions: SelectOption[] = [];
 
@@ -115,6 +116,7 @@ export class EtSettingsPanel extends LitElement {
               label="Root note"
               .options=${this.rootOptions}
               value=${this.rootNote}
+              ?disabled=${this.settingsLocked}
               @et-select-change=${(e: CustomEvent<{ value: string }>) =>
                 this._emit('et-root-change', e.detail.value)}
             ></et-select>
@@ -125,6 +127,7 @@ export class EtSettingsPanel extends LitElement {
               label=${scaleLabel}
               .options=${this.scaleOptions}
               value=${this.scaleKey}
+              ?disabled=${this.settingsLocked}
               @et-select-change=${(e: CustomEvent<{ value: string }>) =>
                 this._emit('et-scale-change', e.detail.value)}
             ></et-select>
@@ -138,14 +141,16 @@ export class EtSettingsPanel extends LitElement {
                 { value: 'guitar', label: 'Guitar' },
               ]}
               value=${this.instrument}
-              ?disabled=${this.instrumentLocked}
+              ?disabled=${this.settingsLocked}
               @et-select-change=${(e: CustomEvent<{ value: string }>) =>
                 this._emit('et-instrument-change', e.detail.value)}
             ></et-select>
             <p class="hint">
               The tune plays on ${INSTRUMENT_LABEL[this.instrument]} — your taps
               sound like ${INSTRUMENT_LABEL[inputInstrument(this.instrument)]}.
-              ${this.instrumentLocked ? 'Locked until the next tune.' : ''}
+              ${this.settingsLocked
+                ? 'Root, scale and instrument are locked until the next tune.'
+                : ''}
             </p>
           </et-field>
         </div>

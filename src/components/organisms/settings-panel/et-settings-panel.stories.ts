@@ -19,7 +19,7 @@ const meta: Meta = {
         rootNote=${args.rootNote}
         scaleKey=${args.scaleKey}
         instrument=${args.instrument ?? 'piano'}
-        ?instrumentLocked=${args.instrumentLocked}
+        ?settingsLocked=${args.settingsLocked}
         .rootOptions=${rootOptions}
         .scaleOptions=${args.scaleOptions}
         @et-notation-change=${(e: CustomEvent) => console.log('notation', e.detail)}
@@ -55,10 +55,11 @@ export const Indian: Story = {
 };
 
 /**
- * Once the tune has been played the instrument is fixed for the round — the
- * control disables and the hint says so. A change lands on the next tune.
+ * Once the tune has been played, root, scale and instrument are all fixed for
+ * the round — the controls disable and the hint says so. Changes land on the
+ * next tune.
  */
-export const InstrumentLocked: Story = {
+export const SettingsLocked: Story = {
   args: {
     notation: 'western',
     difficulty: 'medium',
@@ -66,6 +67,6 @@ export const InstrumentLocked: Story = {
     scaleKey: 'major',
     scaleOptions: westernScales,
     instrument: 'guitar',
-    instrumentLocked: true,
+    settingsLocked: true,
   },
 };

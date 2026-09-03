@@ -62,6 +62,8 @@ export class EtPracticeContent extends LitElement {
   @property({ type: Boolean }) playing = false;
   @property({ attribute: false }) slots: SlotData[] | null = null;
   @property({ type: String }) notation: Notation = 'western';
+  @property({ type: Number }) rootOffset = 0;
+  @property({ type: String }) scaleKey = '';
   @property({ type: String }) feedbackTone: AlertTone | null = null;
   @property({ type: String }) feedbackText = '';
   /** Second line inside the feedback banner — the revealed answer. */
@@ -95,7 +97,11 @@ export class EtPracticeContent extends LitElement {
       ></et-practice-card>
 
       <et-field label="Tap the notes">
-        <et-piano notation=${this.notation}></et-piano>
+        <et-piano
+          notation=${this.notation}
+          rootOffset=${this.rootOffset}
+          scaleKey=${this.scaleKey}
+        ></et-piano>
       </et-field>
 
       ${this.graded

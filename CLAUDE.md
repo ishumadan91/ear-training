@@ -31,7 +31,7 @@ src/
     molecules/   et-menu-segment, et-input-row, et-play-button, et-segmented,
                  et-field, et-waveform, et-stat
     organisms/   et-menu-bar, et-practice-content, et-piano, et-settings-panel,
-                 et-practice-card, et-stats-bar
+                 et-practice-card, et-stats-bar, et-about-sheet
     templates/   et-practice-template (layout, no state)
     pages/       et-practice-page (owns state, wires events)
   main.ts        app entry (imports the page)
@@ -88,6 +88,32 @@ and Indian shows sargam.
 
 **Octave is part of the answer.** A `Note` is `{name, octave, semitone}`, and
 `absPitch()` (`octave × 12 + semitone`) is what playback and grading compare.
+
+## Root note
+
+The root selects **which keys belong to the scale**, and for Indian notation
+**where Sa sits**. It is *never* added to a pitch before playing — a key always
+sounds the note it is labelled with, or the keyboard is lying to the learner.
+
+- **Western names are absolute.** C is C at every root; only scale membership
+  moves. A♯ major is `A♯ C D D♯ F G A`.
+- **Sargam is relative.** Sa *is* the tonic, so `keyLabel()` rotates the
+  syllables to put Sa on the root: at root A♯ the A♯ key reads Sa and the C key
+  reads Re.
+
+`scalePool()` is derived from the keyboard (`allKeys()`) rather than computed
+independently. That guarantees two things a separate computation kept breaking:
+every pool note is tappable whatever the root, and each note carries the label
+of the key that actually sounds it.
+
+Keys outside the scale are **dimmed, not disabled** (`.out-of-scale`) — a hint,
+not a rail; tapping a wrong note is how the exercise tests you. The dimming and
+the tune pool both read `scalePitchClasses()`, so they can never disagree.
+
+The header carries **two** icon buttons (About, Settings). They fire the same
+`et-icon-button-click`, so `et-practice-template` names the intent and re-emits
+`et-about-toggle` / `et-settings-toggle`. Anything selecting the header button
+positionally will grab the wrong one.
 
 ## Audio
 
@@ -150,14 +176,26 @@ Two things there are load-bearing:
 Accuracy is `number | null`. It reads `–` until a round has actually been
 graded — showing 100% up front would claim a perfect record nobody earned.
 
+**First-visit onboarding.** `hasSeenAbout()` / `markAboutSeen()` sit under their
+own key (`ear-training:about-seen`), so clearing settings doesn't replay
+onboarding and vice versa. The page opens the About sheet once on a first visit
+and marks it seen **at open, not at dismiss** — marking on dismiss would replay
+it forever for anyone who reloads without closing it. Where storage is
+unavailable the flag reads false and the sheet opens every launch: it fails
+toward showing the help, never toward hiding it.
+
 ## Instruments
 
 The tune plays on the selected instrument and **the learner's taps answer on
 the other one** (`inputInstrument()`), so timbre can never be used as a crutch —
-only pitch. Playing a tune sets `instrumentLocked`, which disables the select
-for the rest of the round; dealing a new tune (Next tune, or any scale,
-notation or difficulty change) releases it. A pending change therefore takes
-effect from the next tune onwards.
+only pitch.
+
+Playing a tune sets `settingsLocked`, which disables **root, scale and
+instrument** for the rest of the round: the learner has heard a tune in a given
+key on a given instrument, and moving any of those underneath a half-entered
+answer is confusing. Dealing a new tune releases the lock, so a pending change
+takes effect from the next tune onwards. (The design only locks the instrument;
+extending it to root and scale was a deliberate follow-up.)
 
 ## Workflow helpers
 

@@ -23,7 +23,12 @@ import {
   playSequence,
   type Instrument,
 } from '../../../audio/audio-engine.js';
-import { loadPreferences, savePreferences } from '../../../data/preferences.js';
+import {
+  hasSeenAbout,
+  loadPreferences,
+  markAboutSeen,
+  savePreferences,
+} from '../../../data/preferences.js';
 
 /** How a graded round turned out. */
 type Feedback = 'correct' | 'octave' | 'transposed' | 'wrong';
@@ -48,12 +53,19 @@ export class EtPracticePage extends LitElement {
   @state() private rootNote = 'C';
   @state() private difficulty: Difficulty = 'medium';
   @state() private settingsOpen = false;
+  @state() private aboutOpen = false;
   @state() private playing = false;
 
   /** The instrument the *tune* plays on. Taps answer on the other one. */
   @state() private instrument: Instrument = 'piano';
-  /** Set once the tune has been played; cleared when a new tune is dealt. */
-  @state() private instrumentLocked = false;
+  /**
+   * Set once the tune has been played, cleared when a new tune is dealt.
+   *
+   * Root, scale and instrument are all fixed for the rest of the round: the
+   * learner has heard a tune in a particular key on a particular instrument,
+   * and changing any of those underneath a half-entered answer is confusing.
+   */
+  @state() private settingsLocked = false;
 
   @state() private round = 1;
   @state() private score = 0;
@@ -74,6 +86,15 @@ export class EtPracticePage extends LitElement {
     this.rootNote = prefs.rootNote;
     this.difficulty = prefs.difficulty;
     this.instrument = prefs.instrument;
+
+    // First visit: open the explainer once, and record it immediately rather
+    // than on dismiss. Marking on dismiss would replay onboarding forever for
+    // anyone who reloads without closing it.
+    if (!hasSeenAbout()) {
+      this.aboutOpen = true;
+      markAboutSeen();
+    }
+
     // Deal only after the preferences land, so the first tune already uses the
     // restored scale and difficulty rather than the defaults.
     this._dealTune();
@@ -96,7 +117,13 @@ export class EtPracticePage extends LitElement {
     return findScale(this.notation, this.scaleKey);
   }
 
-  /** Semitone the selected root sits on, used to transpose playback. */
+  /**
+   * Semitone the selected root sits on.
+   *
+   * This selects *which keys belong to the scale*, and for Indian notation
+   * where Sa sits. It is never added to a pitch before playing: a key must
+   * sound the note it is labelled with, or the keyboard is lying.
+   */
   private get _rootOffset(): number {
     const offset = semitoneOf(this.rootNote);
     return offset === -1 ? 0 : offset;
@@ -176,11 +203,14 @@ export class EtPracticePage extends LitElement {
    */
   private _dealTune() {
     const length = DIFFICULTY_LENGTH[this.difficulty];
-    this.tune = newTune(length, scalePool(this.notation, this.scaleKey));
+    this.tune = newTune(
+      length,
+      scalePool(this.notation, this.scaleKey, this._rootOffset),
+    );
     this.answers = new Array(length).fill(null);
     this.feedback = null;
     this.feedbackOffset = 0;
-    this.instrumentLocked = false;
+    this.settingsLocked = false;
     this.playing = false;
   }
 
@@ -188,6 +218,10 @@ export class EtPracticePage extends LitElement {
 
   private _onSettingsToggle = () => {
     this.settingsOpen = !this.settingsOpen;
+  };
+
+  private _onAboutToggle = () => {
+    this.aboutOpen = !this.aboutOpen;
   };
 
   private _onNotationChange = (e: CustomEvent<{ value: string }>) => {
@@ -207,46 +241,48 @@ export class EtPracticePage extends LitElement {
   };
 
   private _onScaleChange = (e: CustomEvent<{ value: string }>) => {
+    if (this.settingsLocked) return;
     this.scaleKey = e.detail.value;
     this._savePreferences();
     this._dealTune();
   };
 
   private _onRootChange = (e: CustomEvent<{ value: string }>) => {
+    if (this.settingsLocked) return;
     this.rootNote = e.detail.value;
     this._savePreferences();
+    // The root decides which keys are in scale, so the pool — and with it the
+    // tune — has to be rebuilt rather than left pointing at the old key.
+    this._dealTune();
   };
 
   private _onInstrumentChange = (e: CustomEvent<{ value: string }>) => {
     // Ignored while locked; the control is disabled, so this is belt-and-braces
     // against a programmatic change mid-round.
-    if (this.instrumentLocked) return;
+    if (this.settingsLocked) return;
     this.instrument = e.detail.value as Instrument;
     this._savePreferences();
   };
 
   /* ---------- practice ---------- */
 
-  private _pitchOf(note: Note): number {
-    return absPitch(note) + this._rootOffset;
-  }
-
   private _onPlayToggle = async (e: CustomEvent<{ playing: boolean }>) => {
     if (!e.detail.playing) {
       this.playing = false;
       return;
     }
-    // Playing the tune fixes the instrument for the rest of the round.
-    this.instrumentLocked = true;
+    // Playing the tune fixes root, scale and instrument for the rest of the round.
+    this.settingsLocked = true;
     this.playing = true;
-    await playSequence(this.tune.map((n) => this._pitchOf(n)), this.instrument);
+    await playSequence(this.tune.map(absPitch), this.instrument);
     this.playing = false;
   };
 
   private _onNotePress = (e: CustomEvent<Note & { pitch: number }>) => {
     const { name, octave, semitone, pitch } = e.detail;
     // Taps answer in the *other* instrument, so timbre is never a crutch.
-    playNote(pitch + this._rootOffset, inputInstrument(this.instrument));
+    // The pitch is the key's own — never transposed by the root.
+    playNote(pitch, inputInstrument(this.instrument));
 
     if (this.feedback) return; // round is graded; keys are audition-only
     const next = this.answers.slice();
@@ -315,12 +351,14 @@ export class EtPracticePage extends LitElement {
       <et-practice-template
         heading="Name the notes"
         ?settingsOpen=${this.settingsOpen}
+        ?aboutOpen=${this.aboutOpen}
         notation=${this.notation}
         difficulty=${this.difficulty}
         rootNote=${this.rootNote}
         scaleKey=${this.scaleKey}
         instrument=${this.instrument}
-        ?instrumentLocked=${this.instrumentLocked}
+        ?settingsLocked=${this.settingsLocked}
+        rootOffset=${this._rootOffset}
         .rootOptions=${rootOptions}
         .scaleOptions=${scaleOptions}
         .badges=${this._badges}
@@ -333,7 +371,9 @@ export class EtPracticePage extends LitElement {
         score=${this.score}
         streak=${this.correctCount}
         .accuracy=${this._accuracy}
-        @et-icon-button-click=${this._onSettingsToggle}
+        @et-settings-toggle=${this._onSettingsToggle}
+        @et-about-toggle=${this._onAboutToggle}
+        @et-about-close=${() => (this.aboutOpen = false)}
         @et-notation-change=${this._onNotationChange}
         @et-difficulty-change=${this._onDifficultyChange}
         @et-scale-change=${this._onScaleChange}
