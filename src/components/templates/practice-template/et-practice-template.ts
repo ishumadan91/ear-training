@@ -7,7 +7,7 @@ import '../../organisms/practice-content/et-practice-content.js';
 import type { SlotData } from '../../molecules/input-row/et-input-row.js';
 import type { SelectOption } from '../../atoms/select/et-select.js';
 import type { AlertTone } from '../../atoms/alert/et-alert.js';
-import type { Difficulty, Notation } from '../../../data/scales.js';
+import type { Difficulty, Notation, Note } from '../../../data/scales.js';
 
 /**
  * et-practice-template — the Practice screen's layout: a title row with the
@@ -63,7 +63,6 @@ export class EtPracticeTemplate extends LitElement {
   @property({ type: String }) notation: Notation = 'western';
   @property({ type: String }) difficulty: Difficulty = 'medium';
   @property({ type: String }) rootNote = 'C';
-  @property({ type: Number }) rootOffset = 0;
   @property({ type: String }) scaleKey = 'major';
   @property({ type: String }) instrument = 'piano';
   @property({ type: Boolean }) settingsLocked = false;
@@ -78,6 +77,7 @@ export class EtPracticeTemplate extends LitElement {
   @property({ type: String }) feedbackTone: AlertTone | null = null;
   @property({ type: String }) feedbackText = '';
   @property({ type: String }) feedbackDetail = '';
+  @property({ attribute: false }) answerNotes: Note[] = [];
   @property({ type: Boolean }) graded = false;
   @property({ type: Number }) score = 0;
   @property({ type: Number }) streak = 0;
@@ -113,7 +113,6 @@ export class EtPracticeTemplate extends LitElement {
 
       ${this.settingsOpen
         ? html`<et-settings-panel
-            notation=${this.notation}
             difficulty=${this.difficulty}
             instrument=${this.instrument}
             ?settingsLocked=${this.settingsLocked}
@@ -130,11 +129,11 @@ export class EtPracticeTemplate extends LitElement {
         ?playing=${this.playing}
         .slots=${this.slots}
         notation=${this.notation}
-        rootOffset=${this.rootOffset}
         scaleKey=${this.scaleKey}
         .feedbackTone=${this.feedbackTone}
         feedbackText=${this.feedbackText}
         feedbackDetail=${this.feedbackDetail}
+        .answerNotes=${this.answerNotes}
         ?graded=${this.graded}
         score=${this.score}
         streak=${this.streak}

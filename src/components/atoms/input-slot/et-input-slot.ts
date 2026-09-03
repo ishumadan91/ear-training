@@ -1,5 +1,7 @@
-import { LitElement, html, css, nothing } from 'lit';
+import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import '../swara/et-swara.js';
+import type { Saptak } from '../../../data/scales.js';
 
 export type SlotState = 'empty' | 'filled' | 'correct' | 'octave' | 'incorrect';
 
@@ -9,6 +11,11 @@ export type SlotState = 'empty' | 'filled' | 'correct' | 'octave' | 'incorrect';
  *
  *   empty → dashed neutral outline · filled → teal tint · correct → green
  *   octave → amber (right pitch class, wrong octave) · incorrect → red
+ *
+ * A filled slot is a button: tapping it replays the note that was entered
+ * there, so a learner can re-hear their own answer note by note.
+ *
+ * @fires et-slot-press - CustomEvent<void>, only from a filled slot
  */
 @customElement('et-input-slot')
 export class EtInputSlot extends LitElement {
@@ -16,6 +23,24 @@ export class EtInputSlot extends LitElement {
     :host {
       display: inline-flex;
       flex-shrink: 0;
+    }
+    button.slot {
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      transition:
+        transform 0.05s ease,
+        box-shadow 0.15s ease;
+    }
+    button.slot:hover {
+      box-shadow: var(--shadow-sm);
+    }
+    button.slot:active {
+      transform: scale(0.94);
+    }
+    button.slot:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
     }
     .slot {
       box-sizing: border-box;
@@ -33,12 +58,7 @@ export class EtInputSlot extends LitElement {
       border: 2px dashed var(--color-neutral-300);
       color: var(--color-heading);
     }
-    .octave {
-      display: block;
-      font-size: 9px;
-      font-weight: var(--font-weight-semibold);
-      opacity: 0.75;
-    }
+
     :host([state='filled']) .slot {
       border-style: solid;
       border-color: var(--color-primary);
@@ -66,16 +86,40 @@ export class EtInputSlot extends LitElement {
 
   @property({ type: String, reflect: true }) state: SlotState = 'empty';
   @property({ type: String }) value = '';
-  /** Octave number shown beneath the note name. */
+  /** Octave number shown beneath the note name. Null for Indian notation. */
   @property({ type: Number }) octave: number | null = null;
+  @property({ type: Boolean }) komal = false;
+  @property({ type: Boolean }) tivra = false;
+  @property({ type: String }) saptak: Saptak | null = null;
+  /** Accessible name for the replay button, e.g. "Replay Sa". */
+  @property({ type: String }) label = '';
+
+  private _press() {
+    this.dispatchEvent(
+      new CustomEvent('et-slot-press', { bubbles: true, composed: true }),
+    );
+  }
 
   render() {
-    return html`<span class="slot">
-      ${this.value}
-      ${this.octave !== null && this.value
-        ? html`<small class="octave">${this.octave}</small>`
-        : nothing}
-    </span>`;
+    const glyph = html`<et-swara
+      name=${this.value}
+      ?komal=${this.komal}
+      ?tivra=${this.tivra}
+      .saptak=${this.saptak}
+      .octaveLabel=${this.octave}
+    ></et-swara>`;
+
+    // Empty slots stay inert — there is nothing to replay.
+    if (!this.value) return html`<span class="slot"></span>`;
+
+    return html`<button
+      class="slot"
+      type="button"
+      aria-label=${this.label || `Replay ${this.value}`}
+      @click=${this._press}
+    >
+      ${glyph}
+    </button>`;
   }
 }
 

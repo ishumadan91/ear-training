@@ -2,6 +2,8 @@ import { LitElement, html, css, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import '../../atoms/button/et-button.js';
 import '../../atoms/select/et-select.js';
+import '../../molecules/segmented/et-segmented.js';
+import '../../molecules/note-list/et-note-list.js';
 import '../../atoms/alert/et-alert.js';
 import '../../molecules/field/et-field.js';
 import '../piano/et-piano.js';
@@ -9,8 +11,13 @@ import '../practice-card/et-practice-card.js';
 import '../stats-bar/et-stats-bar.js';
 import type { SlotData } from '../../molecules/input-row/et-input-row.js';
 import type { AlertTone } from '../../atoms/alert/et-alert.js';
-import type { Notation } from '../../../data/scales.js';
+import type { Notation, Note } from '../../../data/scales.js';
 import type { SelectOption } from '../../atoms/select/et-select.js';
+
+const NOTATION_OPTIONS = [
+  { value: 'western', label: 'Western' },
+  { value: 'indian', label: 'Indian' },
+];
 
 /**
  * et-practice-content — the scrollable practice body: the scale and root
@@ -27,6 +34,7 @@ import type { SelectOption } from '../../atoms/select/et-select.js';
  * @fires et-clear - CustomEvent<void>
  * @fires et-check - CustomEvent<void>
  * @fires et-next  - CustomEvent<void>
+ * @fires et-slot-select (bubbles from the answer row) — replay one note
  */
 @customElement('et-practice-content')
 export class EtPracticeContent extends LitElement {
@@ -37,10 +45,22 @@ export class EtPracticeContent extends LitElement {
       gap: var(--space-4);
       padding: 0 var(--space-5) var(--space-5);
     }
+    /* Stays put while the body scrolls, so the notation / scale / root
+       controls are always reachable without scrolling back up. */
     .pickers {
+      position: sticky;
+      top: 0;
+      z-index: 5;
       display: flex;
+      align-items: center;
       gap: var(--space-2);
       flex-wrap: wrap;
+      padding: var(--space-2) 0;
+      background: var(--color-bg);
+    }
+    /* Pinned so the pill keeps one width whichever notation is active. */
+    .pickers .scale {
+      --et-select-width: var(--scale-select-width);
     }
     .actions {
       display: flex;
@@ -55,23 +75,30 @@ export class EtPracticeContent extends LitElement {
     .next {
       display: block;
     }
+    .reveal {
+      display: inline-flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0 var(--space-1);
+    }
   `;
 
   @property({ attribute: false }) scaleOptions: SelectOption[] = [];
   @property({ attribute: false }) rootOptions: SelectOption[] = [];
-  @property({ type: String }) rootNote = 'C';
   /** Root and scale are fixed once the round's tune has been played. */
   @property({ type: Boolean }) settingsLocked = false;
   @property({ type: Boolean }) canBackspace = false;
   @property({ type: Boolean }) playing = false;
   @property({ attribute: false }) slots: SlotData[] | null = null;
   @property({ type: String }) notation: Notation = 'western';
-  @property({ type: Number }) rootOffset = 0;
+  @property({ type: String }) rootNote = 'C';
   @property({ type: String }) scaleKey = '';
   @property({ type: String }) feedbackTone: AlertTone | null = null;
   @property({ type: String }) feedbackText = '';
-  /** Second line inside the feedback banner — the revealed answer. */
+  /** Prefix for the revealed answer, e.g. "Correct answer:". */
   @property({ type: String }) feedbackDetail = '';
+  /** The tune, revealed as glyphs when the round was not fully correct. */
+  @property({ attribute: false }) answerNotes: Note[] = [];
   /**
    * Once the round is graded the Clear / Check pair is replaced by a single
    * "Next tune" action — there is nothing left to check, and re-checking a
@@ -95,7 +122,14 @@ export class EtPracticeContent extends LitElement {
   render() {
     return html`
       <div class="pickers">
+        <et-segmented
+          .options=${NOTATION_OPTIONS}
+          value=${this.notation}
+          @et-segment-change=${(e: CustomEvent<{ value: string }>) =>
+            this._emitValue('et-notation-change', e.detail.value)}
+        ></et-segmented>
         <et-select
+          class="scale"
           variant="badge"
           label=${this.notation === 'western' ? 'Scale' : 'Thaat'}
           .options=${this.scaleOptions}
@@ -124,7 +158,7 @@ export class EtPracticeContent extends LitElement {
       <et-field label="Tap the notes">
         <et-piano
           notation=${this.notation}
-          rootOffset=${this.rootOffset}
+          rootNote=${this.rootNote}
           scaleKey=${this.scaleKey}
         ></et-piano>
       </et-field>
@@ -155,8 +189,15 @@ export class EtPracticeContent extends LitElement {
         ? html`<et-alert
             tone=${this.feedbackTone}
             message=${this.feedbackText}
-            detail=${this.feedbackDetail}
-          ></et-alert>`
+            ?hasDetail=${this.answerNotes.length > 0}
+          >
+            ${this.answerNotes.length
+              ? html`<span slot="detail" class="reveal">
+                  ${this.feedbackDetail}
+                  <et-note-list .notes=${this.answerNotes}></et-note-list>
+                </span>`
+              : nothing}
+          </et-alert>`
         : nothing}
 
       <et-stats-bar

@@ -55,9 +55,12 @@ export class EtSelect extends LitElement {
       cursor: not-allowed;
     }
     :host([variant='badge']) select {
-      width: auto;
-      height: auto;
-      padding: var(--space-1) var(--space-6) var(--space-1) var(--space-3);
+      /* --et-select-width lets a caller pin the width so the control keeps
+         its size as its contents change. */
+      width: var(--et-select-width, auto);
+      height: var(--control-height-pill);
+      padding: 0 var(--space-6) 0 var(--space-3);
+      text-overflow: ellipsis;
       border-color: var(--color-border);
       border-radius: var(--radius-pill);
       font-size: var(--font-size-sm);

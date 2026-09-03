@@ -79,15 +79,57 @@ Re-read the design with `DesignSync(get_file)` before changing screen layout.
 Earlier screens came from the Figma file **"Mobile-wireframes"** (via the Figma
 MCP server); those are superseded for Practice but still describe other flows.
 
-`et-piano` is a real **chromatic** keyboard: octaves 3–4, 14 white keys with 10
-black keys positioned over the seams, scrolling horizontally inside its own
-container. It is not filtered to the active scale — a learner can tap notes
-outside it, which is what makes the exercise a genuine test. Keys are labelled
-from `CHROMATIC[notation]` with the octave beneath, so Western shows `C3 C♯3 …`
-and Indian shows sargam.
+**Scales are degree sets, not note names.** A major scale is `[0,2,4,5,7,9,11]`
+in every key. Spelling scales with note names forces a sharps-or-flats choice
+the keyboard can't honour, which was a recurring source of unwinnable rounds.
 
-**Octave is part of the answer.** A `Note` is `{name, octave, semitone}`, and
-`absPitch()` (`octave × 12 + semitone`) is what playback and grading compare.
+`et-piano` is a real **chromatic** keyboard, **27 keys**, scrolling
+horizontally. The span follows the root (`computeRange`) — a fifth below the
+tonic to a twelfth above — so the tonic sits inside the keyboard rather than at
+its edge; roots from G upward drop an octave to stay in register. It is not
+filtered to the active scale: a learner can tap notes outside it, which is what
+makes the exercise a genuine test.
+
+**Octave is part of the answer.** A `Note` is
+`{name, label, octave, semitone, octaveLabel}`, and `absPitch()`
+(`octave × 12 + semitone`) is what playback and grading compare.
+
+**Western and Indian label differently.** Western names are absolute with the
+octave number beneath (`C4`). Sargam is abbreviated Bhatkhande (`S R R G G M M
+P D D N N` with komal/tivra marks), rotated onto the root, and marks the saptak
+instead of numbering octaves.
+
+**The saptak is measured from the tonic, never from C.** `saptakOf(abs, rootAbs)`
+returns mandra below the root, madhya for root..root+11, taar from root+12. With
+the root at G3 the madhya saptak is G3–F♯4, so F♯3 takes a dot below and G4 a
+dot above — C plays no part in it. The root picker shows the octave (`C4`, `G3`)
+precisely so that boundary is visible; roots from G upward sit in octave 3.
+
+**The app defaults to Indian notation** on a first run (Bilawal, root C4) — see
+`DEFAULT_PREFERENCES`. A returning user's stored choice always wins. Tests that
+exercise the Western path must seed preferences rather than lean on the default.
+
+**Marks are drawn in CSS by `et-swara`, not with combining characters.** A
+combining low line under "N" lands off-centre in Open Sans, and a komal swara in
+the mandra saptak needs a line *and* a dot stacked below the same letter, which
+combining marks collide on. `Note` therefore carries `komal` / `tivra` /
+`saptak` as data; `noteText()` builds the combining form only for plain-text
+contexts (the revealed answer, aria-labels). **Tests must read the `et-swara`
+element, not `textContent`** — the glyph lives in its shadow root.
+
+Nothing user-visible may spell a note as text: the keys, the answer slots and
+the revealed answer all draw glyphs (`et-swara`, `et-note-list`). `noteAria()`
+exists only for spoken labels and spells the marks out in words
+("komal Ni, mandra saptak"). A rendered combining mark is a bug — `ui-audit`
+walks every shadow root and fails on one.
+
+**Filled answer slots are buttons.** Tapping one replays that note in the
+*input* instrument, matching what the key sounded like when it was tapped.
+
+Two placements in that atom are load-bearing and look arbitrary otherwise: the
+komal line rides high, close to the letter, so the mandra dot below it has clear
+air; and the tivra stroke is offset right of centre so it never lands on the
+centred taar dot. Both cases collided before.
 
 ## Root note
 
@@ -110,10 +152,11 @@ Keys outside the scale are **dimmed, not disabled** (`.out-of-scale`) — a hint
 not a rail; tapping a wrong note is how the exercise tests you. The dimming and
 the tune pool both read `scalePitchClasses()`, so they can never disagree.
 
-**Scale and root live on the practice screen**, not in Settings — as pill
-selects (`et-select variant="badge"`) in the row above the listening card. They
-change between rounds, so burying them behind a settings toggle would cost two
-taps every time. Settings keeps only notation, difficulty and instrument. The
+**Notation, scale and root live on the practice screen**, not in Settings — a
+pill segmented control plus two pill selects (`et-select variant="badge"`) in a
+**sticky** row above the listening card. They change between rounds, so burying
+them behind a settings toggle would cost two taps every time. Settings keeps
+only difficulty and instrument. The
 old Round/Streak/scale/root badges are gone; streak still shows in the stats
 card, and `round` is tracked but no longer displayed.
 

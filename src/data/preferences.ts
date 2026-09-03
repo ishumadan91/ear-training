@@ -33,9 +33,13 @@ export interface Preferences {
   instrument: Instrument;
 }
 
+/**
+ * First-run defaults. Indian notation leads, with Bilawal as its first thaat —
+ * a returning user's stored choice always wins over this.
+ */
 export const DEFAULT_PREFERENCES: Preferences = {
-  notation: 'western',
-  scaleKey: 'major',
+  notation: 'indian',
+  scaleKey: 'bilawal',
   rootNote: 'C',
   difficulty: 'medium',
   instrument: 'piano',

@@ -22,7 +22,6 @@ const meta: Meta = {
         ?playing=${args.playing}
         .slots=${args.slots}
         notation=${args.notation ?? 'western'}
-        rootOffset=${args.rootOffset ?? 0}
         scaleKey=${args.scaleKey ?? 'major'}
         .feedbackTone=${args.feedbackTone ?? null}
         ?graded=${args.graded}

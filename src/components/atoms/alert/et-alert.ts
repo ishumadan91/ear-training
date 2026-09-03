@@ -43,11 +43,19 @@ export class EtAlert extends LitElement {
   @property({ type: String }) message = '';
   /** Optional second line, e.g. revealing the answer after a missed round. */
   @property({ type: String }) detail = '';
+  /**
+   * Render the `detail` slot. Needed because a slot always occupies a node,
+   * so its emptiness can't be detected in CSS — and an empty detail row would
+   * otherwise add stray spacing under every alert.
+   */
+  @property({ type: Boolean }) hasDetail = false;
 
   render() {
     return html`<div class="alert" role="status">
       ${this.message || html`<slot></slot>`}
-      ${this.detail ? html`<div class="detail">${this.detail}</div>` : nothing}
+      ${this.detail || this.hasDetail
+        ? html`<div class="detail">${this.detail}<slot name="detail"></slot></div>`
+        : nothing}
     </div>`;
   }
 }

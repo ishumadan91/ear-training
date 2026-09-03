@@ -7,11 +7,19 @@ export interface SlotData {
   value?: string;
   state?: SlotState;
   octave?: number | null;
+  komal?: boolean;
+  tivra?: boolean;
+  saptak?: 'mandra' | 'madhya' | 'taar' | null;
+  /** Accessible name for the slot's replay button. */
+  label?: string;
 }
 
 /**
  * et-input-row — the row of answer slots beneath the play control. Renders one
  * et-input-slot per entry; defaults to five empty slots.
+ *
+ * @fires et-slot-select - CustomEvent<{ index: number }> when a filled slot is
+ *   tapped, so the page can replay that note.
  */
 @customElement('et-input-row')
 export class EtInputRow extends LitElement {
@@ -36,11 +44,23 @@ export class EtInputRow extends LitElement {
   render() {
     return html`
       ${this._data.map(
-        (s) =>
+        (s, i) =>
           html`<et-input-slot
             state=${s.state ?? 'empty'}
             value=${s.value ?? ''}
             .octave=${s.octave ?? null}
+            ?komal=${s.komal ?? false}
+            ?tivra=${s.tivra ?? false}
+            .saptak=${s.saptak ?? null}
+            label=${s.label ?? ''}
+            @et-slot-press=${() =>
+              this.dispatchEvent(
+                new CustomEvent('et-slot-select', {
+                  detail: { index: i },
+                  bubbles: true,
+                  composed: true,
+                }),
+              )}
           ></et-input-slot>`,
       )}
     `;

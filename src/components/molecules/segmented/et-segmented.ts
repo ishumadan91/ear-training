@@ -7,8 +7,9 @@ export interface SegmentOption {
 }
 
 /**
- * et-segmented — a two-or-more option segmented control on a neutral track.
- * Drives the Western / Indian notation choice in the settings panel.
+ * et-segmented — a two-or-more option segmented control on a pill track.
+ * Drives the Western / Indian notation choice, which sits inline with the
+ * scale and root pickers above the listening card.
  *
  * @fires et-segment-change - CustomEvent<{ value: string }>
  */
@@ -19,19 +20,26 @@ export class EtSegmented extends LitElement {
       display: block;
     }
     .track {
-      display: flex;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: stretch;
+      height: var(--control-height-pill);
       gap: 2px;
       padding: 2px;
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-pill);
       background: var(--color-neutral-100);
     }
     button {
       all: unset;
       box-sizing: border-box;
       flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      padding: var(--space-2) var(--space-3);
-      border-radius: var(--radius-sm);
+      padding: 0 var(--space-3);
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
       font-family: var(--font-family-base);
       font-size: var(--font-size-sm);
       font-weight: var(--font-weight-semibold);

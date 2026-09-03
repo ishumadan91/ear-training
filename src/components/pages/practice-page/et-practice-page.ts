@@ -5,12 +5,15 @@ import type { SlotData } from '../../molecules/input-row/et-input-row.js';
 import type { AlertTone } from '../../atoms/alert/et-alert.js';
 import {
   DIFFICULTY_LENGTH,
+  noteAria,
   ROOT_NOTES,
   SCALES,
   absPitch,
+  findScale,
   newTune,
+  rootIndexOf,
+  rootLabel,
   scalePool,
-  semitoneOf,
   type Difficulty,
   type Notation,
   type Note,
@@ -46,8 +49,9 @@ export class EtPracticePage extends LitElement {
   }
 
   // Seeded from stored preferences; progress below always starts fresh.
-  @state() private notation: Notation = 'western';
-  @state() private scaleKey = 'major';
+  // These mirror DEFAULT_PREFERENCES for the pre-load frame.
+  @state() private notation: Notation = 'indian';
+  @state() private scaleKey = 'bilawal';
   @state() private rootNote = 'C';
   @state() private difficulty: Difficulty = 'medium';
   @state() private settingsOpen = false;
@@ -114,13 +118,13 @@ export class EtPracticePage extends LitElement {
   /**
    * Semitone the selected root sits on.
    *
-   * This selects *which keys belong to the scale*, and for Indian notation
-   * where Sa sits. It is never added to a pitch before playing: a key must
-   * sound the note it is labelled with, or the keyboard is lying.
+   * This selects *which keys belong to the scale*, where Sa sits for Indian
+   * notation, and which stretch of the keyboard is shown. It is never added to
+   * a pitch before playing: a key must sound the note it is labelled with, or
+   * the keyboard is lying.
    */
-  private get _rootOffset(): number {
-    const offset = semitoneOf(this.rootNote);
-    return offset === -1 ? 0 : offset;
+  private get _rootIndex(): number {
+    return rootIndexOf(this.rootNote);
   }
 
   private get _feedbackTone(): AlertTone | null {
@@ -153,9 +157,17 @@ export class EtPracticePage extends LitElement {
    * even though the learner taps the key labelled `D♯4`.
    */
   private get _feedbackDetail(): string {
-    if (!this.feedback || this.feedback === 'correct') return '';
-    const answer = this.tune.map((n) => `${n.name}${n.octave}`).join(', ');
-    return `Correct answer: ${answer}`;
+    return this._answerNotes.length ? 'Correct answer:' : '';
+  }
+
+  /**
+   * The tune, revealed after any round that wasn't fully correct. Passed as
+   * notes rather than text so the banner can draw the same glyphs the keys
+   * use — spelling them out would put combining marks back on screen.
+   */
+  private get _answerNotes(): Note[] {
+    if (!this.feedback || this.feedback === 'correct') return [];
+    return this.tune;
   }
 
   private get _slots(): SlotData[] {
@@ -168,7 +180,15 @@ export class EtPracticePage extends LitElement {
         const sameOctave = answer.octave === expected.octave;
         state = samePitch && sameOctave ? 'correct' : samePitch ? 'octave' : 'incorrect';
       }
-      return { state, value: answer.name, octave: answer.octave };
+      return {
+        state,
+        value: answer.name,
+        octave: answer.octaveLabel,
+        komal: answer.komal,
+        tivra: answer.tivra,
+        saptak: answer.saptak,
+        label: `Replay ${noteAria(answer)}`,
+      };
     });
   }
 
@@ -188,7 +208,11 @@ export class EtPracticePage extends LitElement {
     const length = DIFFICULTY_LENGTH[this.difficulty];
     this.tune = newTune(
       length,
-      scalePool(this.notation, this.scaleKey, this._rootOffset),
+      scalePool(
+        this.notation,
+        this._rootIndex,
+        findScale(this.notation, this.scaleKey).degrees,
+      ),
     );
     this.answers = new Array(length).fill(null);
     this.feedback = null;
@@ -262,7 +286,8 @@ export class EtPracticePage extends LitElement {
   };
 
   private _onNotePress = (e: CustomEvent<Note & { pitch: number }>) => {
-    const { name, octave, semitone, pitch } = e.detail;
+    const { name, octave, semitone, octaveLabel, komal, tivra, saptak, pitch } =
+      e.detail;
     // Taps answer in the *other* instrument, so timbre is never a crutch.
     // The pitch is the key's own — never transposed by the root.
     playNote(pitch, inputInstrument(this.instrument));
@@ -271,7 +296,7 @@ export class EtPracticePage extends LitElement {
     const next = this.answers.slice();
     const emptyPos = next.findIndex((a) => a === null);
     if (emptyPos === -1) return; // every slot filled — just sound the note
-    next[emptyPos] = { name, octave, semitone };
+    next[emptyPos] = { name, octave, semitone, octaveLabel, komal, tivra, saptak };
     this.answers = next;
   };
 
@@ -286,6 +311,17 @@ export class EtPracticePage extends LitElement {
         return;
       }
     }
+  };
+
+  /**
+   * Replay one entered note. Uses the input instrument, matching what the key
+   * sounded like when it was tapped — the tune's own instrument is the other
+   * one, and hearing it here would blur that distinction.
+   */
+  private _onSlotSelect = (e: CustomEvent<{ index: number }>) => {
+    const answer = this.answers[e.detail.index];
+    if (!answer) return;
+    playNote(absPitch(answer), inputInstrument(this.instrument));
   };
 
   private _onClear = () => {
@@ -341,7 +377,9 @@ export class EtPracticePage extends LitElement {
       value: s.key,
       label: s.label,
     }));
-    const rootOptions = ROOT_NOTES.map((n) => ({ value: n, label: n }));
+    // The label carries the octave (C4, G3) because that is where the madhya
+    // saptak begins — without it the dot placement looks arbitrary.
+    const rootOptions = ROOT_NOTES.map((n) => ({ value: n, label: rootLabel(n) }));
 
     return html`
       <et-practice-template
@@ -354,7 +392,6 @@ export class EtPracticePage extends LitElement {
         scaleKey=${this.scaleKey}
         instrument=${this.instrument}
         ?settingsLocked=${this.settingsLocked}
-        rootOffset=${this._rootOffset}
         .rootOptions=${rootOptions}
         .scaleOptions=${scaleOptions}
         ?canBackspace=${this.answers.some((a) => a !== null)}
@@ -363,6 +400,7 @@ export class EtPracticePage extends LitElement {
         .feedbackTone=${this._feedbackTone}
         feedbackText=${this._feedbackText}
         feedbackDetail=${this._feedbackDetail}
+        .answerNotes=${this._answerNotes}
         ?graded=${this.feedback !== null}
         score=${this.score}
         streak=${this.correctCount}
@@ -377,6 +415,7 @@ export class EtPracticePage extends LitElement {
         @et-instrument-change=${this._onInstrumentChange}
         @et-play-toggle=${this._onPlayToggle}
         @et-note-press=${this._onNotePress}
+        @et-slot-select=${this._onSlotSelect}
         @et-backspace=${this._onBackspace}
         @et-clear=${this._onClear}
         @et-check=${this._onCheck}

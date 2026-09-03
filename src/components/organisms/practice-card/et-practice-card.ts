@@ -12,7 +12,8 @@ import type { SlotData } from '../../molecules/input-row/et-input-row.js';
  * waveform, and the row of answer slots the learner fills in.
  *
  * @fires et-play-toggle (bubbles from the play button)
- * @fires et-backspace - CustomEvent<void> — remove the last entered note
+ * @fires et-backspace   - CustomEvent<void> — remove the last entered note
+ * @fires et-slot-select (bubbles from the answer row) — replay one note
  */
 @customElement('et-practice-card')
 export class EtPracticeCard extends LitElement {

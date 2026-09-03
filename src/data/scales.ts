@@ -1,10 +1,11 @@
 /**
  * Scale / thaat definitions, keyboard layout, and session constants.
  *
- * Mirrors the note pools and keyboard geometry authored in the "Ear Trainer
- * Dashboard" design so the app and the design stay in lockstep. Western scales
- * use sharp/flat glyphs (♯ ♭); Indian thaats use sargam syllables, where a
- * lowercase syllable marks the komal (flattened) swara and `Ma♯` marks tivra Ma.
+ * Mirrors the "Ear Trainer Dashboard" design. Scales are defined as
+ * **interval degrees above the tonic**, not as note names — a major scale is
+ * `[0,2,4,5,7,9,11]` in every key. That removes a whole class of bug: spelling
+ * a scale with note names forces a choice between sharps and flats, and the
+ * keyboard can only be labelled one way.
  */
 
 export type Notation = 'western' | 'indian';
@@ -13,38 +14,31 @@ export type Difficulty = 'easy' | 'medium' | 'hard';
 export interface Scale {
   key: string;
   label: string;
-  notes: string[];
-}
-
-/** A single pitch: a note name, the octave it sounds in, and its pitch class. */
-export interface Note {
-  name: string;
-  octave: number;
-  /** Semitone within the octave, 0–11. */
-  semitone: number;
+  /** Semitones above the tonic. */
+  degrees: number[];
 }
 
 export const SCALES: Record<Notation, Scale[]> = {
   western: [
-    { key: 'major', label: 'Major', notes: ['C', 'D', 'E', 'F', 'G', 'A', 'B'] },
-    { key: 'naturalMinor', label: 'Natural minor', notes: ['C', 'D', 'E♭', 'F', 'G', 'A♭', 'B♭'] },
-    { key: 'dorian', label: 'Dorian', notes: ['C', 'D', 'E♭', 'F', 'G', 'A', 'B♭'] },
-    { key: 'mixolydian', label: 'Mixolydian', notes: ['C', 'D', 'E', 'F', 'G', 'A', 'B♭'] },
-    { key: 'harmonicMinor', label: 'Harmonic minor', notes: ['C', 'D', 'E♭', 'F', 'G', 'A♭', 'B'] },
-    { key: 'majorPentatonic', label: 'Major pentatonic', notes: ['C', 'D', 'E', 'G', 'A'] },
-    { key: 'minorPentatonic', label: 'Minor pentatonic', notes: ['C', 'E♭', 'F', 'G', 'B♭'] },
+    { key: 'major', label: 'Major', degrees: [0, 2, 4, 5, 7, 9, 11] },
+    { key: 'naturalMinor', label: 'Natural minor', degrees: [0, 2, 3, 5, 7, 8, 10] },
+    { key: 'dorian', label: 'Dorian', degrees: [0, 2, 3, 5, 7, 9, 10] },
+    { key: 'mixolydian', label: 'Mixolydian', degrees: [0, 2, 4, 5, 7, 9, 10] },
+    { key: 'harmonicMinor', label: 'Harmonic minor', degrees: [0, 2, 3, 5, 7, 8, 11] },
+    { key: 'majorPentatonic', label: 'Major pentatonic', degrees: [0, 2, 4, 7, 9] },
+    { key: 'minorPentatonic', label: 'Minor pentatonic', degrees: [0, 3, 5, 7, 10] },
   ],
   indian: [
-    { key: 'bilawal', label: 'Bilawal', notes: ['Sa', 'Re', 'Ga', 'Ma', 'Pa', 'Dha', 'Ni'] },
-    { key: 'kalyan', label: 'Kalyan', notes: ['Sa', 'Re', 'Ga', 'Ma♯', 'Pa', 'Dha', 'Ni'] },
-    { key: 'khamaj', label: 'Khamaj', notes: ['Sa', 'Re', 'Ga', 'Ma', 'Pa', 'Dha', 'ni'] },
-    { key: 'bhairav', label: 'Bhairav', notes: ['Sa', 're', 'Ga', 'Ma', 'Pa', 'dha', 'Ni'] },
-    { key: 'bhairavi', label: 'Bhairavi', notes: ['Sa', 're', 'ga', 'Ma', 'Pa', 'dha', 'ni'] },
-    { key: 'todi', label: 'Todi', notes: ['Sa', 're', 'ga', 'Ma♯', 'Pa', 'dha', 'Ni'] },
-    { key: 'purvi', label: 'Purvi', notes: ['Sa', 're', 'Ga', 'Ma♯', 'Pa', 'dha', 'Ni'] },
-    { key: 'marwa', label: 'Marwa', notes: ['Sa', 're', 'Ga', 'Ma♯', 'Pa', 'Dha', 'Ni'] },
-    { key: 'kafi', label: 'Kafi', notes: ['Sa', 'Re', 'ga', 'Ma', 'Pa', 'Dha', 'ni'] },
-    { key: 'asavari', label: 'Asavari', notes: ['Sa', 'Re', 'ga', 'Ma', 'Pa', 'dha', 'ni'] },
+    { key: 'bilawal', label: 'Bilawal', degrees: [0, 2, 4, 5, 7, 9, 11] },
+    { key: 'kalyan', label: 'Kalyan', degrees: [0, 2, 4, 6, 7, 9, 11] },
+    { key: 'khamaj', label: 'Khamaj', degrees: [0, 2, 4, 5, 7, 9, 10] },
+    { key: 'bhairav', label: 'Bhairav', degrees: [0, 1, 4, 5, 7, 8, 11] },
+    { key: 'bhairavi', label: 'Bhairavi', degrees: [0, 1, 3, 5, 7, 8, 10] },
+    { key: 'todi', label: 'Todi', degrees: [0, 1, 3, 6, 7, 8, 11] },
+    { key: 'purvi', label: 'Purvi', degrees: [0, 1, 4, 6, 7, 8, 11] },
+    { key: 'marwa', label: 'Marwa', degrees: [0, 1, 4, 6, 7, 9, 11] },
+    { key: 'kafi', label: 'Kafi', degrees: [0, 2, 3, 5, 7, 9, 10] },
+    { key: 'asavari', label: 'Asavari', degrees: [0, 2, 3, 5, 7, 8, 10] },
   ],
 };
 
@@ -55,63 +49,183 @@ export const DIFFICULTY_LENGTH: Record<Difficulty, number> = {
   hard: 5,
 };
 
-/** Chromatic root notes offered in the settings panel. */
+/** Chromatic root notes offered in the root picker. */
 export const ROOT_NOTES = [
   'C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B',
 ] as const;
 
-/** The twelve keyboard labels of one octave, in semitone order. */
-export const CHROMATIC: Record<Notation, string[]> = {
-  western: ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'],
-  indian: ['Sa', 're', 'Re', 'ga', 'Ga', 'Ma', 'Ma♯', 'Pa', 'dha', 'Dha', 'ni', 'Ni'],
-};
+export const CHROMATIC_WESTERN = [
+  'C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B',
+];
+
+export type Saptak = 'mandra' | 'madhya' | 'taar';
+
+/**
+ * Abbreviated sargam (Bhatkhande), by semitones above Sa.
+ *
+ * The accidental marks are kept as *data* rather than baked into the string
+ * with combining characters: a combining low line under "N" lands wherever the
+ * font decides, and a komal swara an octave down would need two marks stacked
+ * below the same letter. Components draw them with CSS instead, which puts
+ * them where they belong every time.
+ */
+export const SARGAM: { name: string; komal: boolean; tivra: boolean }[] = [
+  { name: 'S', komal: false, tivra: false },
+  { name: 'R', komal: true, tivra: false },
+  { name: 'R', komal: false, tivra: false },
+  { name: 'G', komal: true, tivra: false },
+  { name: 'G', komal: false, tivra: false },
+  { name: 'M', komal: false, tivra: false },
+  { name: 'M', komal: false, tivra: true },
+  { name: 'P', komal: false, tivra: false },
+  { name: 'D', komal: true, tivra: false },
+  { name: 'D', komal: false, tivra: false },
+  { name: 'N', komal: true, tivra: false },
+  { name: 'N', komal: false, tivra: false },
+];
 
 /** Semitone offsets within an octave that are rendered as black keys. */
 export const BLACK_POSITIONS = new Set([1, 3, 6, 8, 10]);
 
-/** The octaves the keyboard spans, by their real octave numbers. */
-export const OCTAVES = [3, 4];
+/** The Western octave the root is placed in when it is C–F♯. */
+export const ROOT_OCTAVE = 4;
 
 export const WHITE_KEY_WIDTH = 46;
 export const BLACK_KEY_WIDTH = 28;
 
-/**
- * Every note label the app can produce, mapped to its semitone offset from the
- * tonic. Covers both keyboard spellings (sharps, sargam) and the flat
- * spellings the Western scale pools use — `E♭` and `D♯` are the same pitch, so
- * they must resolve to the same number for grading to be fair.
- */
-const SEMITONES: Record<string, number> = {
-  // Western — sharps (keyboard spelling)
-  C: 0, 'C♯': 1, D: 2, 'D♯': 3, E: 4, F: 5,
-  'F♯': 6, G: 7, 'G♯': 8, A: 9, 'A♯': 10, B: 11,
-  // Western — flats (scale-pool spelling)
-  'D♭': 1, 'E♭': 3, 'G♭': 6, 'A♭': 8, 'B♭': 10,
-  // Indian sargam — lowercase = komal, Ma♯ = tivra
-  Sa: 0, re: 1, Re: 2, ga: 3, Ga: 4, Ma: 5,
-  'Ma♯': 6, Pa: 7, dha: 8, Dha: 9, ni: 10, Ni: 11,
-};
-
-/** Semitone offset for a note label, or -1 when the label is unknown. */
-export function semitoneOf(label: string): number {
-  return SEMITONES[label] ?? -1;
+/** Index of a root note within `ROOT_NOTES`, i.e. its semitone above C. */
+export function rootIndexOf(rootNote: string): number {
+  const i = (ROOT_NOTES as readonly string[]).indexOf(rootNote);
+  return i === -1 ? 0 : i;
 }
 
-/** True when two labels name the same pitch class (D♯ and E♭ both count). */
-export function isSamePitch(a: string, b: string): boolean {
-  const sa = semitoneOf(a);
-  return sa !== -1 && sa === semitoneOf(b);
+/**
+ * Western octave the tonic sits in. Roots from G upward drop to octave 3, so
+ * the keyboard's range stays in a comfortable register instead of drifting
+ * shrill — which is why the root picker shows the octave explicitly.
+ */
+export function rootOctaveOf(rootIndex: number): number {
+  return ROOT_OCTAVE - (rootIndex >= 7 ? 1 : 0);
+}
+
+/** Absolute pitch of the tonic. */
+export function rootAbsOf(rootIndex: number): number {
+  return rootOctaveOf(rootIndex) * 12 + rootIndex;
+}
+
+/** The root as shown in the picker, e.g. `C4` or `G3`. */
+export function rootLabel(rootNote: string): string {
+  const i = rootIndexOf(rootNote);
+  return `${ROOT_NOTES[i]}${rootOctaveOf(i)}`;
 }
 
 /** Absolute pitch, so notes across octaves can be compared and ordered. */
-export function absPitch(note: Note): number {
+export function absPitch(note: { octave: number; semitone: number }): number {
   return note.octave * 12 + note.semitone;
+}
+
+export interface PitchRange {
+  low: number;
+  high: number;
+}
+
+/**
+ * The span of keys shown for a given root: a fifth below the tonic up to a
+ * twelfth above, which keeps the tonic well inside the keyboard rather than
+ * pinned to its left edge.
+ */
+export function computeRange(rootIndex: number): PitchRange {
+  const rootAbs = rootAbsOf(rootIndex);
+  return { low: rootAbs - 7, high: rootAbs + 19 };
+}
+
+/**
+ * Which saptak a pitch falls in, measured **from the tonic** — not from C.
+ *
+ * Sa *is* the octave boundary in Indian notation: with the root at G3, the
+ * madhya saptak runs G3–F♯4, so F♯3 takes a dot below and G4 a dot above.
+ * Keying this off Western octave numbers (as an earlier version did) puts the
+ * dots at C, which is unrelated to where Sa sits.
+ */
+export function saptakOf(abs: number, rootAbs: number): Saptak {
+  if (abs < rootAbs) return 'mandra';
+  if (abs >= rootAbs + 12) return 'taar';
+  return 'madhya';
+}
+
+/** A single pitch on the keyboard. */
+export interface Note {
+  /** Base letter: `C`/`F♯` for Western, a bare sargam letter for Indian. */
+  name: string;
+  octave: number;
+  /** Semitone within the octave, 0–11. */
+  semitone: number;
+  /** Octave number shown beneath the name; null for Indian. */
+  octaveLabel: number | null;
+  /** Indian only — komal swara, drawn as a line under the letter. */
+  komal: boolean;
+  /** Indian only — tivra Ma, drawn as a stroke above the letter. */
+  tivra: boolean;
+  /** Indian only — which saptak, drawn as a dot above/below. */
+  saptak: Saptak | null;
+}
+
+/**
+ * The name a key carries.
+ *
+ * Western names are **absolute**: C is C whatever the root is. Sargam is
+ * **relative** — Sa *is* the tonic — so the syllables rotate onto the root.
+ * Neither changes what a key sounds: a key always plays its own pitch.
+ */
+export function noteName(
+  notation: Notation,
+  rootIndex: number,
+  semitone: number,
+): string {
+  if (notation === 'indian') {
+    return SARGAM[(((semitone - rootIndex) % 12) + 12) % 12].name;
+  }
+  return CHROMATIC_WESTERN[((semitone % 12) + 12) % 12];
+}
+
+/** Build one note from an absolute pitch. */
+export function noteAt(
+  notation: Notation,
+  rootIndex: number,
+  abs: number,
+): Note {
+  const octave = Math.floor(abs / 12);
+  const semitone = ((abs % 12) + 12) % 12;
+
+  if (notation === 'western') {
+    return {
+      name: CHROMATIC_WESTERN[semitone],
+      octave,
+      semitone,
+      octaveLabel: octave,
+      komal: false,
+      tivra: false,
+      saptak: null,
+    };
+  }
+
+  const swara = SARGAM[(((semitone - rootIndex) % 12) + 12) % 12];
+  return {
+    name: swara.name,
+    octave,
+    semitone,
+    octaveLabel: null,
+    komal: swara.komal,
+    tivra: swara.tivra,
+    saptak: saptakOf(abs, rootAbsOf(rootIndex)),
+  };
 }
 
 export interface KeyboardKey extends Note {
   width: number;
   /** Only set for black keys — their absolute offset within the track. */
   left?: number;
+  inScale: boolean;
 }
 
 export interface KeyboardLayout {
@@ -120,119 +234,63 @@ export interface KeyboardLayout {
   width: number;
 }
 
-/**
- * The label a key carries, which depends on how the notation names pitches.
- *
- * Western names are **absolute**: C is C whatever the root is. Sargam names
- * are **relative** — Sa *is* the tonic — so the syllables rotate to put Sa on
- * the selected root. At root A♯, the A♯ key reads "Sa" and the C key reads
- * "Re".
- *
- * Neither case changes what a key *sounds*: a key always plays its own pitch.
- */
-export function keyLabel(
-  notation: Notation,
-  semitone: number,
-  rootOffset = 0,
-): string {
-  if (notation === 'indian') {
-    return CHROMATIC.indian[(((semitone - rootOffset) % 12) + 12) % 12];
-  }
-  return CHROMATIC.western[((semitone % 12) + 12) % 12];
+/** The pitch classes the scale occupies at the given root. */
+export function scalePitchClasses(degrees: number[], rootIndex: number): Set<number> {
+  return new Set(degrees.map((d) => (((rootIndex + d) % 12) + 12) % 12));
 }
 
 /**
- * Lay out the chromatic keyboard across `octaves`. White keys flow in a row;
+ * Lay out the keyboard across the root's range. White keys flow in a row;
  * black keys are positioned absolutely, straddling the seam between the white
  * keys either side of them.
  */
 export function buildKeyboard(
   notation: Notation,
-  rootOffset = 0,
-  octaves: number[] = OCTAVES,
+  rootIndex: number,
+  degrees: number[],
+  range: PitchRange = computeRange(rootIndex),
 ): KeyboardLayout {
+  const inScale = scalePitchClasses(degrees, rootIndex);
   const whiteKeys: KeyboardKey[] = [];
   const blackKeys: KeyboardKey[] = [];
   let whiteCount = 0;
 
-  for (const octave of octaves) {
-    for (let semitone = 0; semitone < 12; semitone++) {
-      const note: Note = {
-        name: keyLabel(notation, semitone, rootOffset),
-        octave,
-        semitone,
-      };
-      if (BLACK_POSITIONS.has(semitone)) {
-        blackKeys.push({
-          ...note,
-          width: BLACK_KEY_WIDTH,
-          left: whiteCount * WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2,
-        });
-      } else {
-        whiteKeys.push({ ...note, width: WHITE_KEY_WIDTH });
-        whiteCount++;
-      }
+  for (let abs = range.low; abs <= range.high; abs++) {
+    const note = noteAt(notation, rootIndex, abs);
+    const entry = { ...note, inScale: inScale.has(note.semitone) };
+    if (BLACK_POSITIONS.has(note.semitone)) {
+      blackKeys.push({
+        ...entry,
+        width: BLACK_KEY_WIDTH,
+        left: whiteCount * WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2,
+      });
+    } else {
+      whiteKeys.push({ ...entry, width: WHITE_KEY_WIDTH });
+      whiteCount++;
     }
   }
 
   return { whiteKeys, blackKeys, width: whiteCount * WHITE_KEY_WIDTH };
 }
 
-/** Every key on the keyboard, low to high. */
-export function allKeys(
-  notation: Notation,
-  rootOffset = 0,
-  octaves: number[] = OCTAVES,
-): KeyboardKey[] {
-  const { whiteKeys, blackKeys } = buildKeyboard(notation, rootOffset, octaves);
-  return [...whiteKeys, ...blackKeys].sort((a, b) => absPitch(a) - absPitch(b));
-}
-
 /**
- * The scale's intervals above its tonic, in semitones — `[0, 2, 4, 5, 7, 9, 11]`
- * for a major scale. The scale tables are written from C / Sa, so a note's own
- * semitone *is* its degree.
- */
-export function scaleDegrees(notation: Notation, scaleKey: string): number[] {
-  return findScale(notation, scaleKey).notes.map(semitoneOf);
-}
-
-/**
- * The pitch classes (0–11, absolute) the scale occupies at the given root.
- *
- * Used both to draw the tune pool and to dim the keys that fall outside the
- * scale — the two must agree, so they share this one source.
- */
-export function scalePitchClasses(
-  notation: Notation,
-  scaleKey: string,
-  rootOffset = 0,
-): Set<number> {
-  return new Set(
-    scaleDegrees(notation, scaleKey).map((d) => (((d + rootOffset) % 12) + 12) % 12),
-  );
-}
-
-/**
- * The notes a tune may be drawn from: every key on the keyboard whose interval
- * above the root belongs to the scale.
- *
- * Deriving the pool from the keyboard rather than from the scale table has two
- * consequences that matter. Every pool note is guaranteed to be tappable — a
- * pitch computed independently could land outside the keyboard's range once
- * the root shifts it. And each note carries the label of the key that plays
- * it, so what the learner reads always matches what they hear.
+ * The notes a tune may be drawn from: every pitch in the keyboard's range
+ * whose interval above the root belongs to the scale. Derived from the same
+ * range the keyboard uses, so every tune note is guaranteed to be tappable.
  */
 export function scalePool(
   notation: Notation,
-  scaleKey: string,
-  rootOffset = 0,
-  octaves: number[] = OCTAVES,
+  rootIndex: number,
+  degrees: number[],
+  range: PitchRange = computeRange(rootIndex),
 ): Note[] {
-  const inScale = scalePitchClasses(notation, scaleKey, rootOffset);
-  return allKeys(notation, rootOffset, octaves)
-    .filter((k) => inScale.has(k.semitone))
-    .map(({ name, octave, semitone }) => ({ name, octave, semitone }));
+  const inScale = scalePitchClasses(degrees, rootIndex);
+  const pool: Note[] = [];
+  for (let abs = range.low; abs <= range.high; abs++) {
+    const note = noteAt(notation, rootIndex, abs);
+    if (inScale.has(note.semitone)) pool.push(note);
+  }
+  return pool;
 }
 
 /** Look up a scale by key, falling back to the notation's first entry. */
@@ -244,4 +302,30 @@ export function findScale(notation: Notation, key: string): Scale {
 /** Random tune of `length` notes drawn from the given pool. */
 export function newTune(length: number, pool: Note[]): Note[] {
   return Array.from({ length }, () => pool[Math.floor(Math.random() * pool.length)]);
+}
+
+/** Full sargam names, for anything spoken rather than drawn. */
+const SWARA_SPOKEN: Record<string, string> = {
+  S: 'Sa', R: 'Re', G: 'Ga', M: 'Ma', P: 'Pa', D: 'Dha', N: 'Ni',
+};
+
+/**
+ * How a note is *spoken* — for aria-labels.
+ *
+ * Never used for anything visible. Indian notation is drawn by `et-swara`;
+ * spelling it with combining marks reads as mojibake to a screen reader (and
+ * rendered badly on screen, which is why the marks became CSS in the first
+ * place). This spells the marks out instead: "komal Ni, mandra saptak".
+ */
+export function noteAria(note: Note): string {
+  if (note.octaveLabel !== null) return `${note.name}${note.octave}`;
+  const swara = SWARA_SPOKEN[note.name] ?? note.name;
+  const prefix = note.komal ? 'komal ' : note.tivra ? 'tivra ' : '';
+  const saptak =
+    note.saptak === 'mandra'
+      ? ', mandra saptak'
+      : note.saptak === 'taar'
+        ? ', taar saptak'
+        : '';
+  return `${prefix}${swara}${saptak}`;
 }

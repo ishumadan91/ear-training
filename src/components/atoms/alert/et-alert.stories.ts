@@ -55,3 +55,17 @@ export const WithRevealedAnswer: Story = {
     </div>
   `,
 };
+
+/**
+ * The detail line also accepts slotted content, which is how the practice
+ * screen reveals the answer as drawn glyphs rather than text.
+ */
+export const SlottedDetail: Story = {
+  render: () => html`
+    <div style="min-width:320px">
+      <et-alert tone="error" message="Not quite right." hasDetail>
+        <span slot="detail">Correct answer: <strong>C4, E4, G3, D4</strong></span>
+      </et-alert>
+    </div>
+  `,
+};

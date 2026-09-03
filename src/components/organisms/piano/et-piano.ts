@@ -1,10 +1,12 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import '../../atoms/swara/et-swara.js';
 import {
-  OCTAVES,
   absPitch,
+  noteAria,
   buildKeyboard,
-  scalePitchClasses,
+  findScale,
+  rootIndexOf,
   type KeyboardKey,
   type Notation,
 } from '../../../data/scales.js';
@@ -12,9 +14,12 @@ import {
 /**
  * et-piano — the interactive chromatic keyboard.
  *
- * Two octaves of real piano layout: white keys in a row, black keys positioned
- * absolutely over the seams between them. The track is wider than a phone, so
- * it scrolls horizontally inside its own container.
+ * Real piano layout: white keys in a row, black keys positioned absolutely
+ * over the seams between them. The track is wider than a phone, so it scrolls
+ * horizontally inside its own container.
+ *
+ * The span follows the root — a fifth below the tonic to a twelfth above — so
+ * the tonic sits inside the keyboard rather than at its left edge.
  *
  * The keyboard is chromatic rather than scale-filtered, which means a learner
  * can tap notes outside the current scale — that's deliberate, and it's what
@@ -60,11 +65,6 @@ export class EtPiano extends LitElement {
       justify-content: flex-end;
       gap: 1px;
       line-height: 1.1;
-    }
-    .octave {
-      font-size: 9px;
-      font-weight: var(--font-weight-semibold);
-      opacity: 0.65;
     }
     .white {
       flex-shrink: 0;
@@ -124,20 +124,21 @@ export class EtPiano extends LitElement {
 
   /** Which note vocabulary to label the keys with. */
   @property({ type: String }) notation: Notation = 'western';
-  /** Semitone of the current root — moves Sa for Indian notation. */
-  @property({ type: Number }) rootOffset = 0;
+  /** Root note, e.g. "C" or "A♯". Places Sa, and centres the key range. */
+  @property({ type: String }) rootNote = 'C';
   /** Scale whose notes stay full-strength; the rest are dimmed. */
   @property({ type: String }) scaleKey = '';
-  /** Which octaves to span, by real octave number. */
-  @property({ attribute: false }) octaves: number[] = OCTAVES;
   @property({ type: Boolean, reflect: true }) disabled = false;
 
   private _press(key: KeyboardKey) {
     if (this.disabled) return;
-    const { name, octave, semitone } = key;
+    const { name, octave, semitone, octaveLabel, komal, tivra, saptak } = key;
     this.dispatchEvent(
       new CustomEvent('et-note-press', {
-        detail: { name, octave, semitone, pitch: absPitch(key) },
+        detail: {
+          name, octave, semitone, octaveLabel, komal, tivra, saptak,
+          pitch: absPitch(key),
+        },
         bubbles: true,
         composed: true,
       }),
@@ -145,17 +146,15 @@ export class EtPiano extends LitElement {
   }
 
   render() {
+    const rootIndex = rootIndexOf(this.rootNote);
+    const degrees = findScale(this.notation, this.scaleKey).degrees;
     const { whiteKeys, blackKeys, width } = buildKeyboard(
       this.notation,
-      this.rootOffset,
-      this.octaves,
+      rootIndex,
+      degrees,
     );
-    // No scale selected → nothing is "outside" it, so leave every key lit.
-    const inScale = this.scaleKey
-      ? scalePitchClasses(this.notation, this.scaleKey, this.rootOffset)
-      : null;
     const cls = (base: string, k: KeyboardKey) =>
-      inScale && !inScale.has(k.semitone) ? `${base} out-of-scale` : base;
+      k.inScale ? base : `${base} out-of-scale`;
 
     return html`
       <div class="scroll">
@@ -171,10 +170,16 @@ export class EtPiano extends LitElement {
                 class=${cls('white', k)}
                 style="width:${k.width}px"
                 ?disabled=${this.disabled}
-                aria-label=${`${k.name} ${k.octave}`}
+                aria-label=${noteAria(k)}
                 @click=${() => this._press(k)}
               >
-                ${k.name}<small class="octave">${k.octave}</small>
+                <et-swara
+                  name=${k.name}
+                  ?komal=${k.komal}
+                  ?tivra=${k.tivra}
+                  .saptak=${k.saptak}
+                  .octaveLabel=${k.octaveLabel}
+                ></et-swara>
               </button>
             `,
           )}
@@ -184,10 +189,16 @@ export class EtPiano extends LitElement {
                 class=${cls('black', k)}
                 style="left:${k.left}px;width:${k.width}px"
                 ?disabled=${this.disabled}
-                aria-label=${`${k.name} ${k.octave}`}
+                aria-label=${noteAria(k)}
                 @click=${() => this._press(k)}
               >
-                ${k.name}<small class="octave">${k.octave}</small>
+                <et-swara
+                  name=${k.name}
+                  ?komal=${k.komal}
+                  ?tivra=${k.tivra}
+                  .saptak=${k.saptak}
+                  .octaveLabel=${k.octaveLabel}
+                ></et-swara>
               </button>
             `,
           )}

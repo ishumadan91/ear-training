@@ -4,19 +4,13 @@ import '../../atoms/card/et-card.js';
 import '../../atoms/chip/et-chip.js';
 import '../../atoms/select/et-select.js';
 import '../../molecules/field/et-field.js';
-import '../../molecules/segmented/et-segmented.js';
-import type { Difficulty, Notation } from '../../../data/scales.js';
+import type { Difficulty } from '../../../data/scales.js';
 import { DIFFICULTY_LENGTH } from '../../../data/scales.js';
 import {
   INSTRUMENT_LABEL,
   inputInstrument,
   type Instrument,
 } from '../../../audio/audio-engine.js';
-
-const NOTATION_OPTIONS = [
-  { value: 'western', label: 'Western (C D E)' },
-  { value: 'indian', label: 'Indian (Sa Re Ga)' },
-];
 
 const DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard'];
 const DIFFICULTY_LABEL: Record<Difficulty, string> = {
@@ -26,16 +20,15 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
 };
 
 /**
- * et-settings-panel — the collapsible practice settings sheet: notation,
- * difficulty and instrument.
+ * et-settings-panel — the collapsible practice settings sheet: difficulty and
+ * instrument.
  *
- * Scale and root deliberately live on the practice screen instead (see
- * `et-practice-content`) — they change between rounds, so burying them behind
- * a settings toggle would cost two taps every time.
+ * Notation, scale and root deliberately live on the practice screen instead
+ * (see `et-practice-content`) — they change between rounds, so burying them
+ * behind a settings toggle would cost two taps every time.
  *
  * Presentational — it reports every change upward and holds no state itself.
  *
- * @fires et-notation-change   - CustomEvent<{ value: Notation }>
  * @fires et-difficulty-change - CustomEvent<{ value: Difficulty }>
  * @fires et-instrument-change - CustomEvent<{ value: string }>
  */
@@ -62,7 +55,6 @@ export class EtSettingsPanel extends LitElement {
     }
   `;
 
-  @property({ type: String }) notation: Notation = 'western';
   @property({ type: String }) difficulty: Difficulty = 'medium';
   @property({ type: String }) instrument: Instrument = 'piano';
   /**
@@ -82,15 +74,6 @@ export class EtSettingsPanel extends LitElement {
     return html`
       <et-card padding="sm">
         <div class="stack">
-          <et-field label="Notation">
-            <et-segmented
-              .options=${NOTATION_OPTIONS}
-              value=${this.notation}
-              @et-segment-change=${(e: CustomEvent<{ value: string }>) =>
-                this._emit('et-notation-change', e.detail.value)}
-            ></et-segmented>
-          </et-field>
-
           <et-field label="Difficulty">
             <div class="chips">
               ${DIFFICULTIES.map(

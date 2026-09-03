@@ -95,6 +95,14 @@
   --shadow-pop: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
   --shadow-inset: inset 0 2px 4px rgba(0, 48, 73, 0.12);
 
+  /* ---- Controls ---- */
+  /* Height shared by the pill controls in the picker row, so the segmented
+     switch and the two selects line up exactly. */
+  --control-height-pill: 36px;
+  /* Fixed width for the scale picker: it must not resize when the notation
+     changes (a "Bilawal" pill and a "Major" pill would otherwise differ). */
+  --scale-select-width: 8.25rem;
+
   /* ---- Layout ---- */
   --app-max-width: 420px;
   --menu-bar-height: 72px;
