@@ -299,9 +299,34 @@ export function findScale(notation: Notation, key: string): Scale {
   return list.find((s) => s.key === key) ?? list[0];
 }
 
-/** Random tune of `length` notes drawn from the given pool. */
-export function newTune(length: number, pool: Note[]): Note[] {
-  return Array.from({ length }, () => pool[Math.floor(Math.random() * pool.length)]);
+/**
+ * Widest leap allowed between consecutive tune notes, in semitones — a perfect
+ * fifth. The pool spans over two octaves, so drawing every note independently
+ * produced tunes that jumped G3 to G5 between beats: hard to hold in your head
+ * and nothing like a melody. Steps are capped instead, which keeps a tune
+ * singable while still letting it roam the whole range across several notes.
+ */
+export const MAX_LEAP = 7;
+
+/**
+ * Random tune of `length` notes drawn from the given pool, with each note
+ * within `maxLeap` semitones of the one before it. The pool is assumed sorted
+ * by pitch (as `scalePool` builds it), but nothing here depends on that.
+ */
+export function newTune(length: number, pool: Note[], maxLeap = MAX_LEAP): Note[] {
+  if (pool.length === 0) return [];
+  const tune: Note[] = [];
+  for (let i = 0; i < length; i++) {
+    const prev: Note | undefined = tune[i - 1];
+    const reachable: Note[] = prev
+      ? pool.filter((n) => Math.abs(absPitch(n) - absPitch(prev)) <= maxLeap)
+      : pool;
+    // Fall back to the whole pool if the cap leaves nothing reachable, so a
+    // narrow scale or a tight range can never deal an empty round.
+    const choices = reachable.length > 0 ? reachable : pool;
+    tune.push(choices[Math.floor(Math.random() * choices.length)]);
+  }
+  return tune;
 }
 
 /** Full sargam names, for anything spoken rather than drawn. */

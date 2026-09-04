@@ -90,6 +90,12 @@ its edge; roots from G upward drop an octave to stay in register. It is not
 filtered to the active scale: a learner can tap notes outside it, which is what
 makes the exercise a genuine test.
 
+**Tunes step, they don't leap.** `newTune` draws each note within `MAX_LEAP`
+(7 semitones, a perfect fifth) of the previous one. The pool spans over two
+octaves, so independent draws produced consecutive notes like G3 → G5 — hard to
+hold in your head and nothing like a melody. A tune can still cover the range,
+just across several notes.
+
 **Octave is part of the answer.** A `Note` is
 `{name, label, octave, semitone, octaveLabel}`, and `absPitch()`
 (`octave × 12 + semitone`) is what playback and grading compare.
