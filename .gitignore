@@ -5,6 +5,9 @@ node_modules/
 # Build output
 dist/
 storybook-static/
+# The embed build. Its output is committed by the app that hosts it, not here —
+# see scripts/sync_learning_app.py in the lwcg repo.
+dist-lib/
 
 # Logs
 *.log

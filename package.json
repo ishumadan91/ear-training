@@ -1,7 +1,7 @@
 {
   "name": "ear-training",
   "version": "1.0.0",
-  "description": "Ear training app — Lit web components, atomic design",
+  "description": "Ear training app \u2014 Lit web components, atomic design",
   "type": "module",
   "license": "ISC",
   "author": "",
@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "build:lib": "tsc --noEmit && vite build --mode lib"
   },
   "dependencies": {
     "lit": "^3.2.1"

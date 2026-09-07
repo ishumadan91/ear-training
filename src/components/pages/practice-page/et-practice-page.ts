@@ -1,5 +1,5 @@
 import { LitElement, html } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import '../../templates/practice-template/et-practice-template.js';
 import type { SlotData } from '../../molecules/input-row/et-input-row.js';
 import type { AlertTone } from '../../atoms/alert/et-alert.js';
@@ -29,6 +29,8 @@ import {
   loadPreferences,
   markAboutSeen,
   savePreferences,
+  setStorage,
+  type EtStorage,
 } from '../../../data/preferences.js';
 
 /** How a graded round turned out. */
@@ -47,6 +49,16 @@ export class EtPracticePage extends LitElement {
   createRenderRoot() {
     return this;
   }
+
+  /**
+   * Where settings are persisted. Left null the app uses localStorage and
+   * needs no configuration.
+   *
+   * A host must assign this **before appending the element** — preferences are
+   * read in `connectedCallback`, and an adapter arriving after that would be
+   * ignored for the first session.
+   */
+  @property({ attribute: false }) storage: EtStorage | null = null;
 
   // Seeded from stored preferences; progress below always starts fresh.
   // These mirror DEFAULT_PREFERENCES for the pre-load frame.
@@ -82,6 +94,9 @@ export class EtPracticePage extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    // Must happen before the first read, or the session starts on whatever the
+    // previous backend held.
+    if (this.storage) setStorage(this.storage);
     const prefs = loadPreferences();
     this.notation = prefs.notation;
     this.scaleKey = prefs.scaleKey;
@@ -370,7 +385,41 @@ export class EtPracticePage extends LitElement {
     } else {
       this.feedback = 'wrong';
     }
+
+    this._reportRound();
   };
+
+  /**
+   * Announce a graded round so a host can record it.
+   *
+   * The app reports what happened and nothing more — streaks, history and
+   * totals are the host's to derive. That split means a new metric on the host
+   * never needs a change here.
+   *
+   * Fired only from `_onCheck`, so a round the learner abandoned or re-dealt
+   * without checking is never counted as practice.
+   */
+  private _reportRound() {
+    this.dispatchEvent(
+      new CustomEvent('et-round-graded', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          outcome: this.feedback,
+          notes: this.tune.length,
+          score: this.score,
+          correctCount: this.correctCount,
+          totalCount: this.totalCount,
+          accuracy: this._accuracy,
+          notation: this.notation,
+          scaleKey: this.scaleKey,
+          rootNote: this.rootNote,
+          difficulty: this.difficulty,
+          instrument: this.instrument,
+        },
+      }),
+    );
+  }
 
   render() {
     const scaleOptions = SCALES[this.notation].map((s) => ({

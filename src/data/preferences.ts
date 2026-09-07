@@ -25,6 +25,51 @@ const STORAGE_KEY = 'ear-training:preferences';
  */
 const ABOUT_SEEN_KEY = 'ear-training:about-seen';
 
+/**
+ * Where settings are kept.
+ *
+ * The app defaults to localStorage and runs standalone with no configuration.
+ * A host embedding `et-practice-page` can supply its own backend instead — a
+ * server-backed one, so a learner's settings follow them across devices.
+ *
+ * Deliberately **synchronous**, mirroring localStorage: the page reads
+ * preferences in `connectedCallback` and has nowhere to await. A server-backed
+ * adapter must therefore hydrate its cache *before* it is handed to the
+ * element, and write through asynchronously.
+ */
+export interface EtStorage {
+  get(key: string): unknown | null;
+  set(key: string, value: unknown): void;
+  remove(key: string): void;
+}
+
+/**
+ * The default backend.
+ *
+ * Every access is wrapped: localStorage throws rather than returning null in
+ * some browsers — Safari in private mode is the classic case. Losing
+ * persistence is acceptable; taking the app down with it is not.
+ */
+export const localStorageAdapter: EtStorage = {
+  get(key) {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  },
+  set(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+  },
+  remove(key) {
+    localStorage.removeItem(key);
+  },
+};
+
+let backend: EtStorage = localStorageAdapter;
+
+/** Swap the storage backend. Passing null restores localStorage. */
+export function setStorage(storage: EtStorage | null): void {
+  backend = storage ?? localStorageAdapter;
+}
+
 export interface Preferences {
   notation: Notation;
   scaleKey: string;
@@ -46,14 +91,13 @@ export const DEFAULT_PREFERENCES: Preferences = {
 };
 
 /**
- * localStorage throws rather than returning null in some browsers — Safari in
- * private mode is the classic case — so every access is guarded. Losing
- * persistence is acceptable; taking the app down with it is not.
+ * Guarded reads and writes. The backend is either the browser's localStorage
+ * or a host's adapter; both can throw, and neither is worth an exception that
+ * reaches the learner.
  */
 function readRaw(key: string): unknown {
   try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : null;
+    return backend.get(key);
   } catch {
     return null;
   }
@@ -61,9 +105,17 @@ function readRaw(key: string): unknown {
 
 function writeRaw(key: string, value: unknown): void {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    backend.set(key, value);
   } catch {
-    /* storage full, disabled, or blocked — the session still works */
+    /* storage full, disabled, blocked, or the host errored — session works on */
+  }
+}
+
+function removeRaw(key: string): void {
+  try {
+    backend.remove(key);
+  } catch {
+    /* nothing to do */
   }
 }
 
@@ -147,18 +199,10 @@ export function markAboutSeen(): void {
 
 /** Forget stored preferences, returning the app to its defaults. */
 export function clearPreferences(): void {
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    /* nothing to do */
-  }
+  removeRaw(STORAGE_KEY);
 }
 
 /** Forget that the explainer was shown, so it opens again on the next visit. */
 export function clearAboutSeen(): void {
-  try {
-    localStorage.removeItem(ABOUT_SEEN_KEY);
-  } catch {
-    /* nothing to do */
-  }
+  removeRaw(ABOUT_SEEN_KEY);
 }
