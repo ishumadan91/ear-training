@@ -301,16 +301,14 @@ export class EtPracticePage extends LitElement {
   };
 
   private _onNotePress = (e: CustomEvent<Note & { pitch: number }>) => {
-    const { name, octave, semitone, octaveLabel, komal, tivra, saptak, pitch } =
-      e.detail;
-    // Taps answer in the *other* instrument, so timbre is never a crutch.
-    // The pitch is the key's own — never transposed by the root.
-    playNote(pitch, inputInstrument(this.instrument));
+    const { name, octave, semitone, octaveLabel, komal, tivra, saptak } = e.detail;
+    // The keyboard has already sounded the key — on the *other* instrument
+    // (`keyInstrument` in render) so timbre is never a crutch.
 
     if (this.feedback) return; // round is graded; keys are audition-only
     const next = this.answers.slice();
     const emptyPos = next.findIndex((a) => a === null);
-    if (emptyPos === -1) return; // every slot filled — just sound the note
+    if (emptyPos === -1) return; // every slot filled — the key only sounds
     next[emptyPos] = { name, octave, semitone, octaveLabel, komal, tivra, saptak };
     this.answers = next;
   };
@@ -440,6 +438,7 @@ export class EtPracticePage extends LitElement {
         rootNote=${this.rootNote}
         scaleKey=${this.scaleKey}
         instrument=${this.instrument}
+        keyInstrument=${inputInstrument(this.instrument)}
         ?settingsLocked=${this.settingsLocked}
         .rootOptions=${rootOptions}
         .scaleOptions=${scaleOptions}

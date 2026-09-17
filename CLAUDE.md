@@ -22,9 +22,9 @@ per folder with a co-located `*.stories.ts`.
 ```
 src/
   styles/        tokens.css (source of truth), tokens.ts, global.css, colors.stories.ts
-  data/          scales.ts — scales, thaats, keyboard layout, semitone mapping
+  data/          scales.ts — scales, thaats, note naming, semitone mapping
                  preferences.ts — localStorage settings (validated on read)
-  audio/         audio-engine.ts — Web Audio synthesis (piano + guitar)
+  audio/         audio-engine.ts — tune playback over the shared synth
   components/
     atoms/       et-icon, et-icon-button, et-toggle, et-button, et-divider,
                  et-input-slot, et-badge, et-chip, et-card, et-alert, et-select
@@ -83,6 +83,22 @@ MCP server); those are superseded for Practice but still describe other flows.
 in every key. Spelling scales with note names forces a sharps-or-flats choice
 the keyboard can't honour, which was a recurring source of unwinnable rounds.
 
+**The keyboard is shared.** `cg-keyboard`, `cg-swara` and the synth voices
+come from the npm package **`@chordialguy/keyboard`** (repo
+`~/Developer/sandbox/chordialguy-keyboard`), because the LWCG song player uses
+them too. Change them there and publish; take the new version here with
+`npm install @chordialguy/keyboard@latest`. To try unpublished library changes,
+`npm link` it — but never commit a `file:` or linked dependency: the Pages
+deploy runs `npm ci` on this repo alone. Lit is a peer dependency, so the
+keyboard shares this app's copy. The library speaks **MIDI**
+(C4 = 60) while this app's `absPitch` puts C4 at 48: convert with
+`toMidi`/`fromMidi` from `scales.ts`, only at that seam.
+
+`et-piano` wraps `cg-keyboard` (range, tonic, scale `degrees`, `outside="dim"`,
+the tap instrument) and re-emits `cg-note-press` as `et-note-press` with a
+`Note`. The keyboard sounds taps itself, from pointer-down, on `keyInstrument` —
+the page no longer plays them.
+
 `et-piano` is a real **chromatic** keyboard, **27 keys**, scrolling
 horizontally. The span follows the root (`computeRange`) — a fifth below the
 tonic to a twelfth above — so the tonic sits inside the keyboard rather than at
@@ -115,16 +131,16 @@ precisely so that boundary is visible; roots from G upward sit in octave 3.
 `DEFAULT_PREFERENCES`. A returning user's stored choice always wins. Tests that
 exercise the Western path must seed preferences rather than lean on the default.
 
-**Marks are drawn in CSS by `et-swara`, not with combining characters.** A
+**Marks are drawn in CSS by `cg-swara`, not with combining characters.** A
 combining low line under "N" lands off-centre in Open Sans, and a komal swara in
 the mandra saptak needs a line *and* a dot stacked below the same letter, which
 combining marks collide on. `Note` therefore carries `komal` / `tivra` /
 `saptak` as data; `noteText()` builds the combining form only for plain-text
-contexts (the revealed answer, aria-labels). **Tests must read the `et-swara`
+contexts (the revealed answer, aria-labels). **Tests must read the `cg-swara`
 element, not `textContent`** — the glyph lives in its shadow root.
 
 Nothing user-visible may spell a note as text: the keys, the answer slots and
-the revealed answer all draw glyphs (`et-swara`, `et-note-list`). `noteAria()`
+the revealed answer all draw glyphs (`cg-swara`, `et-note-list`). `noteAria()`
 exists only for spoken labels and spells the marks out in words
 ("komal Ni, mandra saptak"). A rendered combining mark is a bug — `ui-audit`
 walks every shadow root and fails on one.
@@ -177,12 +193,15 @@ positionally will grab the wrong one.
 
 ## Audio
 
-`src/audio/audio-engine.ts` synthesises everything at runtime — no sample
-assets, works offline. **Piano** is additive (triangle fundamental + four sine
-partials, lowpass closing as it decays); **guitar** is Karplus-Strong rendered
-into an `AudioBuffer`.
+The voices are synthesised at runtime by the shared library
+(`@chordialguy/keyboard`, `src/audio/` in its repo) — no sample assets, works offline.
+`src/audio/audio-engine.ts` only keeps what is particular to this app: the
+instrument list, the tune/tap swap, and tune pacing. **Piano** is a
+register-dependent harmonic series through a closing lowpass (the LWCG song
+player's voice, which replaced this app's simpler additive one); **guitar** is
+Karplus-Strong rendered into an `AudioBuffer`.
 
-Two things there are load-bearing and easy to break:
+Two things in the library are load-bearing and easy to break:
 
 - The delay line uses **fractional interpolation**. Rounding it to whole samples
   puts the guitar up to ~26 cents sharp, which is disqualifying in a pitch app.

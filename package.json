@@ -1,7 +1,7 @@
 {
   "name": "ear-training",
   "version": "1.0.0",
-  "description": "Ear training app \u2014 Lit web components, atomic design",
+  "description": "Ear training app — Lit web components, atomic design",
   "type": "module",
   "license": "ISC",
   "author": "",
@@ -15,6 +15,7 @@
     "build:lib": "tsc --noEmit && vite build --mode lib"
   },
   "dependencies": {
+    "@chordialguy/keyboard": "^1.0.0",
     "lit": "^3.2.1"
   },
   "devDependencies": {

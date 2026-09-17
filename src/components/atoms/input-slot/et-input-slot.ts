@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import '../swara/et-swara.js';
+import '@chordialguy/keyboard';
 import type { Saptak } from '../../../data/scales.js';
 
 export type SlotState = 'empty' | 'filled' | 'correct' | 'octave' | 'incorrect';
@@ -101,13 +101,13 @@ export class EtInputSlot extends LitElement {
   }
 
   render() {
-    const glyph = html`<et-swara
+    const glyph = html`<cg-swara
       name=${this.value}
       ?komal=${this.komal}
       ?tivra=${this.tivra}
       .saptak=${this.saptak}
       .octaveLabel=${this.octave}
-    ></et-swara>`;
+    ></cg-swara>`;
 
     // Empty slots stay inert — there is nothing to replay.
     if (!this.value) return html`<span class="slot"></span>`;

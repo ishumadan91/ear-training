@@ -93,6 +93,8 @@ export class EtPracticeContent extends LitElement {
   @property({ type: String }) notation: Notation = 'western';
   @property({ type: String }) rootNote = 'C';
   @property({ type: String }) scaleKey = '';
+  /** What the answer keys sound on. */
+  @property({ type: String }) keyInstrument = 'guitar';
   @property({ type: String }) feedbackTone: AlertTone | null = null;
   @property({ type: String }) feedbackText = '';
   /** Prefix for the revealed answer, e.g. "Correct answer:". */
@@ -160,6 +162,7 @@ export class EtPracticeContent extends LitElement {
           notation=${this.notation}
           rootNote=${this.rootNote}
           scaleKey=${this.scaleKey}
+          instrument=${this.keyInstrument}
         ></et-piano>
       </et-field>
 

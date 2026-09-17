@@ -65,6 +65,8 @@ export class EtPracticeTemplate extends LitElement {
   @property({ type: String }) rootNote = 'C';
   @property({ type: String }) scaleKey = 'major';
   @property({ type: String }) instrument = 'piano';
+  /** What the answer keys sound on — the other instrument from the tune. */
+  @property({ type: String }) keyInstrument = 'guitar';
   @property({ type: Boolean }) settingsLocked = false;
   @property({ attribute: false }) rootOptions: SelectOption[] = [];
   @property({ attribute: false }) scaleOptions: SelectOption[] = [];
@@ -130,6 +132,7 @@ export class EtPracticeTemplate extends LitElement {
         .slots=${this.slots}
         notation=${this.notation}
         scaleKey=${this.scaleKey}
+        keyInstrument=${this.keyInstrument}
         .feedbackTone=${this.feedbackTone}
         feedbackText=${this.feedbackText}
         feedbackDetail=${this.feedbackDetail}

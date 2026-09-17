@@ -1,5 +1,5 @@
 /**
- * Scale / thaat definitions, keyboard layout, and session constants.
+ * Scale / thaat definitions, note naming, and session constants.
  *
  * Mirrors the "Ear Trainer Dashboard" design. Scales are defined as
  * **interval degrees above the tonic**, not as note names — a major scale is
@@ -8,7 +8,11 @@
  * keyboard can only be labelled one way.
  */
 
-export type Notation = 'western' | 'indian';
+import { SARGAM, saptakOf as saptakFromSa } from '@chordialguy/keyboard';
+import type { Notation, Saptak } from '@chordialguy/keyboard';
+
+export type { Notation, Saptak };
+export { SARGAM };
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
 export interface Scale {
@@ -58,40 +62,8 @@ export const CHROMATIC_WESTERN = [
   'C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B',
 ];
 
-export type Saptak = 'mandra' | 'madhya' | 'taar';
-
-/**
- * Abbreviated sargam (Bhatkhande), by semitones above Sa.
- *
- * The accidental marks are kept as *data* rather than baked into the string
- * with combining characters: a combining low line under "N" lands wherever the
- * font decides, and a komal swara an octave down would need two marks stacked
- * below the same letter. Components draw them with CSS instead, which puts
- * them where they belong every time.
- */
-export const SARGAM: { name: string; komal: boolean; tivra: boolean }[] = [
-  { name: 'S', komal: false, tivra: false },
-  { name: 'R', komal: true, tivra: false },
-  { name: 'R', komal: false, tivra: false },
-  { name: 'G', komal: true, tivra: false },
-  { name: 'G', komal: false, tivra: false },
-  { name: 'M', komal: false, tivra: false },
-  { name: 'M', komal: false, tivra: true },
-  { name: 'P', komal: false, tivra: false },
-  { name: 'D', komal: true, tivra: false },
-  { name: 'D', komal: false, tivra: false },
-  { name: 'N', komal: true, tivra: false },
-  { name: 'N', komal: false, tivra: false },
-];
-
-/** Semitone offsets within an octave that are rendered as black keys. */
-export const BLACK_POSITIONS = new Set([1, 3, 6, 8, 10]);
-
 /** The Western octave the root is placed in when it is C–F♯. */
 export const ROOT_OCTAVE = 4;
-
-export const WHITE_KEY_WIDTH = 46;
-export const BLACK_KEY_WIDTH = 28;
 
 /** Index of a root note within `ROOT_NOTES`, i.e. its semitone above C. */
 export function rootIndexOf(rootNote: string): number {
@@ -124,6 +96,14 @@ export function absPitch(note: { octave: number; semitone: number }): number {
   return note.octave * 12 + note.semitone;
 }
 
+/**
+ * This app counts pitch as `octave × 12 + semitone`, so its C4 is 48. The
+ * shared keyboard and synth speak MIDI, where C4 is 60. Convert at that seam
+ * and nowhere else — a missed conversion is every note an octave out.
+ */
+export const toMidi = (abs: number): number => abs + 12;
+export const fromMidi = (midi: number): number => midi - 12;
+
 export interface PitchRange {
   low: number;
   high: number;
@@ -140,18 +120,11 @@ export function computeRange(rootIndex: number): PitchRange {
 }
 
 /**
- * Which saptak a pitch falls in, measured **from the tonic** — not from C.
- *
- * Sa *is* the octave boundary in Indian notation: with the root at G3, the
- * madhya saptak runs G3–F♯4, so F♯3 takes a dot below and G4 a dot above.
- * Keying this off Western octave numbers (as an earlier version did) puts the
- * dots at C, which is unrelated to where Sa sits.
+ * Which saptak a pitch falls in, measured **from the tonic** — not from C. The
+ * shared keyboard's rule; it compares two pitches, so it works in this app's
+ * numbering as well as in MIDI.
  */
-export function saptakOf(abs: number, rootAbs: number): Saptak {
-  if (abs < rootAbs) return 'mandra';
-  if (abs >= rootAbs + 12) return 'taar';
-  return 'madhya';
-}
+export const saptakOf = saptakFromSa;
 
 /** A single pitch on the keyboard. */
 export interface Note {
@@ -221,56 +194,9 @@ export function noteAt(
   };
 }
 
-export interface KeyboardKey extends Note {
-  width: number;
-  /** Only set for black keys — their absolute offset within the track. */
-  left?: number;
-  inScale: boolean;
-}
-
-export interface KeyboardLayout {
-  whiteKeys: KeyboardKey[];
-  blackKeys: KeyboardKey[];
-  width: number;
-}
-
 /** The pitch classes the scale occupies at the given root. */
 export function scalePitchClasses(degrees: number[], rootIndex: number): Set<number> {
   return new Set(degrees.map((d) => (((rootIndex + d) % 12) + 12) % 12));
-}
-
-/**
- * Lay out the keyboard across the root's range. White keys flow in a row;
- * black keys are positioned absolutely, straddling the seam between the white
- * keys either side of them.
- */
-export function buildKeyboard(
-  notation: Notation,
-  rootIndex: number,
-  degrees: number[],
-  range: PitchRange = computeRange(rootIndex),
-): KeyboardLayout {
-  const inScale = scalePitchClasses(degrees, rootIndex);
-  const whiteKeys: KeyboardKey[] = [];
-  const blackKeys: KeyboardKey[] = [];
-  let whiteCount = 0;
-
-  for (let abs = range.low; abs <= range.high; abs++) {
-    const note = noteAt(notation, rootIndex, abs);
-    const entry = { ...note, inScale: inScale.has(note.semitone) };
-    if (BLACK_POSITIONS.has(note.semitone)) {
-      blackKeys.push({
-        ...entry,
-        width: BLACK_KEY_WIDTH,
-        left: whiteCount * WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2,
-      });
-    } else {
-      whiteKeys.push({ ...entry, width: WHITE_KEY_WIDTH });
-      whiteCount++;
-    }
-  }
-
-  return { whiteKeys, blackKeys, width: whiteCount * WHITE_KEY_WIDTH };
 }
 
 /**
@@ -337,7 +263,7 @@ const SWARA_SPOKEN: Record<string, string> = {
 /**
  * How a note is *spoken* — for aria-labels.
  *
- * Never used for anything visible. Indian notation is drawn by `et-swara`;
+ * Never used for anything visible. Indian notation is drawn by `cg-swara`;
  * spelling it with combining marks reads as mojibake to a screen reader (and
  * rendered badly on screen, which is why the marks became CSS in the first
  * place). This spells the marks out instead: "komal Ni, mandra saptak".
